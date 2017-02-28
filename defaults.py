@@ -190,6 +190,10 @@ default_gaptext='gap size: {0:.2f}%'
 # for locale-aware formatting e.g.:
 #default_gaptext='gap size: {0:.4n}%'
 
+# Minimum gap size (normalized, i.e. \Delta\omega/\omega_{center});
+# gaps smaller than this will not be drawn in the band diagram:
+min_gapsize = 0.0
+
 default_x_axis_hint = 5 # 5 equally spaced ticks, labeled with k-vector
 default_y_axis_label = r'frequency $\omega a/2\pi c$'
 default_x_axis_label = 'wave vector {0}'

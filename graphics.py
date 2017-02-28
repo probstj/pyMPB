@@ -315,9 +315,12 @@ def draw_bands(
             else:
                 gapbands = get_gap_bands(data[:, 5:])
             for band in gapbands:
-                plotter.add_band_gap_rectangle(
-                    band[1], band[2],
-                    light_line=data[:,4] / refr_index if light_cone else None)
+                bsize = 2 * (band[2] - band[1]) / (band[2] + band[1])
+                if bsize >= defaults.min_gapsize:
+                    plotter.add_band_gap_rectangle(
+                        band[1], band[2],
+                        light_line= \
+                            data[:,4] / refr_index if light_cone else None)
 
     if light_cone:
         plotter.add_light_cone(refr_index)
