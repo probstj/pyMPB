@@ -31,7 +31,7 @@ import numpy as np
 
 
 def TriHoles2D(
-        material, radius, numbands=8, k_interpolation=11, 
+        material, radius, numbands=8, k_interpolation=11,
         resolution=32, mesh_size=7,
         runmode='sim', num_processors=2,
         save_field_patterns=True, convert_field_patterns=True,
@@ -79,7 +79,7 @@ def TriHoles2D(
     :return: the Simulation object
 
     """
-    mat = Dielectric(material)    
+    mat = Dielectric(material)
 
     geom = Geometry(
         width=1,
@@ -136,7 +136,7 @@ def TriHoles2D(
         clear_subfolder=runmode.startswith('s') or runmode.startswith('c'))
 
     draw_bands_title = ('2D hex. PhC; {0}, radius={1:0.3f}'.format(
-                            mat.name, geom.objects[0].radius) + 
+                            mat.name, geom.objects[0].radius) +
                         bands_title_appendix)
 
     return do_runmode(
@@ -151,7 +151,7 @@ def TriHoles2D(
 
 
 def TriHolesSlab3D(
-        material, radius, thickness, numbands=8, k_interpolation=11, 
+        material, radius, thickness, numbands=8, k_interpolation=11,
         resolution=32, mesh_size=7, supercell_z=6,
         runmode='sim', num_processors=2,
         save_field_patterns=True, convert_field_patterns=True,
@@ -282,8 +282,8 @@ def TriHolesSlab3D(
 
     draw_bands_title = ('Hex. PhC slab; '
                         '{0}, thickness={1:0.3f}, radius={2:0.3f}'.format(
-                            mat.name, 
-                            geom.objects[0].size[2], 
+                            mat.name,
+                            geom.objects[0].size[2],
                             geom.objects[1].radius) +
                         bands_title_appendix)
     return do_runmode(

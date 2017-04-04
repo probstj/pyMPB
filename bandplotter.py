@@ -122,21 +122,21 @@ class BandPlotter:
         # all graphs.
         # The same goes for the minimum values.
 
-        # start new plot at blue again (using the seaborn default color 
+        # start new plot at blue again (using the seaborn default color
         # palette with red and green exchanged to meet common conventions):
-        self._colors = cycle([(0.2980392156862745, 0.4470588235294118, 
+        self._colors = cycle([(0.2980392156862745, 0.4470588235294118,
                                0.6901960784313725),
-                              (0.7686274509803922, 0.3058823529411765, 
+                              (0.7686274509803922, 0.3058823529411765,
                                0.3215686274509804),
-                              (0.3333333333333333, 0.6588235294117647, 
+                              (0.3333333333333333, 0.6588235294117647,
                                0.40784313725490196),
-                              (0.5058823529411764, 0.4470588235294118, 
+                              (0.5058823529411764, 0.4470588235294118,
                                0.6980392156862745),
-                              (0.8, 0.7254901960784313, 
+                              (0.8, 0.7254901960784313,
                                0.4549019607843137),
-                              (0.39215686274509803, 0.7098039215686275, 
+                              (0.39215686274509803, 0.7098039215686275,
                                0.803921568627451)])
-        self._last_color = (0.2980392156862745, 0.4470588235294118, 
+        self._last_color = (0.2980392156862745, 0.4470588235294118,
                             0.6901960784313725)
         self._distribute_subplots()
 
@@ -160,20 +160,20 @@ class BandPlotter:
 
         for i, ax in enumerate(self._axes):
             ax.change_geometry(rows, numcols, i + 1)
-    
+
     def _calc_corrected_x_values(self, k_data):
         """Calculate new x-axis values based on the Euclidean point
         distance of the k-vectors."""
         def point_distance(p1, p2):
             """Euclidean point distance in 3D space"""
             return np.sqrt(np.sum(np.square(p2 - p1)))
-        
+
         x_vals = np.zeros(len(k_data))
         k_data_vecs = k_data[:, :-1]  # the kmag/2pi column is irrelevant here
         for i, k in enumerate(k_data_vecs[:-1]):
             x_vals[i + 1] = point_distance(k, k_data_vecs[i + 1]) + x_vals[i]
         return x_vals
-    
+
     def plot_bands(
             self, banddata, k_data, formatstr='',
             x_axis_formatter=CustomAxisFormatter(),
@@ -211,7 +211,7 @@ class BandPlotter:
 
         The *label* is the graph's label. It will be shown in a plot legend if
         one is added.
-        
+
         If *correct_x_axis* is set to True (default), the bands are plotted
         versus x-values which are equidistant according to the Euclidean
         distance between the k-vectors. That way distortions are avoided which
@@ -742,7 +742,6 @@ class BandPlotter:
 
     def add_color_bar_for_parity(self, parity_direction='z',
                                  location='right', pad=0.1):
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
         """Add a color bar for the parity color code to the current axis.
 
         :param parity_direction: is only needed for the label.
@@ -751,6 +750,8 @@ class BandPlotter:
         colorbar, in inches.
 
         """
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+
         if self._last_parity_scatter is None:
             # no parity data plotted
             return
