@@ -332,6 +332,7 @@ class BandPlotter:
         self._ax.plot(
             self._x_data, banddata, formatstr, label=label, **kwargs)
         if color_by_parity is not None:
+            kwargs.pop('color', None)
             for i, bd in enumerate(banddata.T):
                 self._last_parity_scatter = self._ax.scatter(
                     self._x_data,

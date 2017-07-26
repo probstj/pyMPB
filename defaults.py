@@ -32,14 +32,14 @@ epsh5topng_call_3D = 'h5topng -0z0 -S3 -Zrcbluered -oepsilon.png %(h5_file)s'
 epsh5topng_call_3D_cross_sect = ('h5topng -0x0 -S3 -Zrcbluered '
                               '-oepsilonslab.png %(h5_file)s')
 
-fieldh5topng_call_2D = ('h5topng -S3 -Zcbluered -C%(eps_file)s '
+fieldh5topng_call_2D = ('h5topng -S3 -Zcdkbluered -C%(eps_file)s '
                         '-o%(output_file)s %(h5_file)s')
-fieldh5topng_call_2D_no_ovl = ('h5topng -S3 -Zcbluered '
+fieldh5topng_call_2D_no_ovl = ('h5topng -S3 -Zcdkbluered '
                         '-o%(output_file_no_ovl)s %(h5_file)s')
 
-fieldh5topng_call_3D = ('h5topng -0z0 -S3 -Zcbluered -C%(eps_file)s '
+fieldh5topng_call_3D = ('h5topng -0z0 -S3 -Zcdkbluered -C%(eps_file)s '
                         '-o%(output_file)s %(h5_file)s')
-fieldh5topng_call_3D_no_ovl = ('h5topng -0z0 -S3 -Zcbluered '
+fieldh5topng_call_3D_no_ovl = ('h5topng -0z0 -S3 -Zcdkbluered '
                         '-o%(output_file_no_ovl)s %(h5_file)s')
 display_png_call = 'display  %(files)s'
 
@@ -261,7 +261,7 @@ def default_onclick(event, bandplotter):
         xaxisformatter = event.mouseevent.inaxes.xaxis.major.formatter
     except AttributeError:
         return
-    
+
     print(thisline.get_label() + ' mode(s): ', end='')
     for i in ind:
         kindex = thisline.data[2, i]
