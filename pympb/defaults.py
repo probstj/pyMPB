@@ -199,9 +199,9 @@ default_y_axis_label = r'frequency $\omega a/2\pi c$'
 default_x_axis_label = 'wave vector {0}'
 # the x_axis_label used when showing high symmetry point labels on the k
 # axis: Note: I am not entirely satisfied with this title. How do you
-# really call it? 'Brilluoin zone symmetry points'? 'Wave vector
+# really call it? 'Brillouin zone symmetry points'? 'Wave vector
 # direction'? (this last one is good, but we also see the magnitude,
-# when e.g. going from Gamma to M etc.) 'Wave vector point in brilluoin
+# when e.g. going from Gamma to M etc.) 'Wave vector point in Brillouin
 # zone'? (too long)
 default_kspace_axis_label = 'wave vector'
 

@@ -21,12 +21,9 @@
 from __future__ import division
 
 import sys
-sys.path.append('../')
 
-from phc_simulations import TriHolesSlab3D
-import data
-import log
-import defaults
+from pympb.phc_simulations import TriHolesSlab3D
+from pympb import data, log, defaults
 
 
 # no inversion symmetry!

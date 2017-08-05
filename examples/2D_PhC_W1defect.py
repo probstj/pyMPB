@@ -22,11 +22,9 @@
 from __future__ import division
 
 import sys
-sys.path.append('../')
 import numpy as np
-from phc_simulations import TriHoles2D_Waveguide
-import log
-import defaults
+from pympb.phc_simulations import TriHoles2D_Waveguide
+from pympb import log, defaults
 
 
 def main():

@@ -21,15 +21,14 @@
 from __future__ import division
 
 import sys
-sys.path.append('../../')
 from os import path
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from phc_simulations import TriHolesSlab3D
-from utility import get_gap_bands, sum_of_squares
-import log
+from pympb.phc_simulations import TriHolesSlab3D
+from pympb.utility import get_gap_bands, sum_of_squares
+from pympb import log
 
 
 def main():

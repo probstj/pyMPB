@@ -27,7 +27,8 @@ Dependencies:
  
 Usage:
 ------
- 
+
+0. Inside downloaded folder, install package with pip (``-e`` installs with symlinks, meaning you can change and update the source code without reinstalling; The dot at the end is important): ``pip install -e .``  
 0. Add your material's refractive indices to data.py
 0. Update defaults (programm calls etc.) in defaults.py
 0. Start with predefined PhC simulations in phc_simulations.py

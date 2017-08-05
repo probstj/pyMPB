@@ -20,14 +20,12 @@
 
 from __future__ import division
 import sys
-sys.path.append('../')
-from simulation import Simulation
-from geometry import Geometry
-from kspace import KSpace
-from objects import Dielectric, Block
-from utility import do_runmode
-import defaults
-import log
+from pympb.simulation import Simulation
+from pympb.geometry import Geometry
+from pympb.kspace import KSpace
+from pympb.objects import Dielectric, Block
+from pympb.utility import do_runmode
+from pympb import defaults, log
 
 def UniformSlab3D(
         material, substrate_material=1, numbands=8, k_interpolation=11,

@@ -17,11 +17,10 @@ from __future__ import division
 import unittest
 
 import sys
-sys.path.append('../')
 import numpy as np
-from kspace import KSpace, KSpaceTriangular
-from kspace import KSpaceRectangular, KSpaceRectangularGrid
-import defaults
+from pympb.kspace import KSpace, KSpaceTriangular
+from pympb.kspace import KSpaceRectangular, KSpaceRectangularGrid
+from pympb import defaults
 
 class TestKSpaces(unittest.TestCase):
 

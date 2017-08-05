@@ -15,15 +15,13 @@
 from __future__ import division
 
 import sys
-sys.path.append('../')
 from os import path
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from phc_simulations import TriHolesSlab3D
-import log
-import defaults
+from pympb.phc_simulations import TriHolesSlab3D
+from pympb import log, defaults
 
 def main():
 

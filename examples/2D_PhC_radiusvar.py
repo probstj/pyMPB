@@ -15,15 +15,14 @@
 from __future__ import division
 
 import sys
-sys.path.append('../')
 from os import path
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from phc_simulations import TriHoles2D
-from utility import get_gap_bands
-import log
+from pympb.phc_simulations import TriHoles2D
+from pympb.utility import get_gap_bands
+from pympb import log
 
 def main():
     if len(sys.argv) > 1:

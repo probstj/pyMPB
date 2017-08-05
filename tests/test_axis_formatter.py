@@ -17,10 +17,8 @@ from __future__ import division
 import unittest
 
 import sys
-sys.path.append('../')
 import numpy as np
-import defaults
-import axis_formatter
+from pympb import defaults, axis_formatter
 
 class TestKSpaces(unittest.TestCase):
 
@@ -33,16 +31,16 @@ class TestKSpaces(unittest.TestCase):
             ('{0:{1}.{2}f}',  '$k_x$'),
             ('{:{}.{}f}',  '$k_x$'),
             ('{3:.3f}', r'$|k|$'),
-            ('({0:.3f}, {1:.3f})', r'$(k_x, k_y)$'),
-            ('({:.3f}, {:.3f})', r'$(k_x, k_y)$'),
-            ('({1:.3f}, {2:.3f})', r'$(k_y, k_z)$'),
+            ('({0:.3f}, {1:.3f})', r'$(k_x,\ k_y)$'),
+            ('({:.3f}, {:.3f})', r'$(k_x,\ k_y)$'),
+            ('({1:.3f}, {2:.3f})', r'$(k_y,\ k_z)$'),
             ('({0:.3f}, {1:.3f}, {2:.3f})', r'$\vec{k}$'),
             ('({:.3f}, {:.3f}, {:.3f})', r'$\vec{k}$'),
             ('({0:.{3}f}, {1:.{3}f}, {2:.{3}f})',  r'$\vec{k}$'),
             ('({:.{}f}, {:.{}f}, {:.{}f})',  r'$\vec{k}$'),
-            ('{{{0:.{3}f}, {1:.{3}f}, {2:.{3}f}}}', '${k_x, k_y, k_z}$'),
+            ('{{{0:.{3}f}, {1:.{3}f}, {2:.{3}f}}}', '${k_x,\ k_y,\ k_z}$'),
             ('{{abc:def}}{0:.{3}f}, {1:.{3}f}, {2:.{3}f}{{qrs:xyz}}',
-                '${abc:def}k_x, k_y, k_z{qrs:xyz}$'),
+                '${abc:def}k_x,\ k_y,\ k_z{qrs:xyz}$'),
             ('{{{0}', '${k_x$'),
             ('{0}{{', '$k_x{$'),
             ('}}{0}', '$}k_x$'),

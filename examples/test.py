@@ -13,14 +13,13 @@
 	#along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-sys.path.append('../')
-from objects import Rod,Dielectric
-from simulation import Simulation
-from geometry import Geometry
-from kspace import KSpaceRectangularGrid
-from utility import wheel,occupancy_radius
-from graphics import draw_geometry
-from objects import Dielectric,Rod
+from pympb.objects import Rod,Dielectric
+from pympb.simulation import Simulation
+from pympb.geometry import Geometry
+from pympb.kspace import KSpaceRectangularGrid
+from pympb.utility import wheel,occupancy_radius
+from pympb.graphics import draw_geometry
+from pympb.objects import Dielectric,Rod
 
 def basic_test():
 	test_geom = Geometry(1,1,[Rod(0,0,Dielectric(11.8), \
