@@ -241,9 +241,9 @@ def get_triangular_phc_waveguide_air_rods(
 
 def max_epsilon(geometry, anisotropic_component=0):
     return max(
-        obj.material.epsilon[anisotropic_component] 
-        if isinstance(obj.material.epsilon, (list, tuple)) 
-        else obj.material.epsilon 
+        obj.material.epsilon[anisotropic_component]
+        if isinstance(obj.material.epsilon, (list, tuple))
+        else obj.material.epsilon
         for obj in geometry.objects)
 
 
@@ -268,14 +268,14 @@ def get_intersection_freq(freq_left1, freq_right1, freq_left2, freq_right2):
     fi = ((fr2-fl2)*fl1 - (fr1-fl1)*fl2) / (fr2-fl2-fr1+fl1)
     fi = (fr2*fl1 - fr1*fl2) / (fr2-fl2-fr1+fl1)
     '''
-    return ((freq_right2*freq_left1 - freq_right1*freq_left2) / 
+    return ((freq_right2*freq_left1 - freq_right1*freq_left2) /
             (freq_right2-freq_left2-freq_right1+freq_left1))
 
 
 def get_intersection_knum(freq_left, freq_right, freq_intersection):
-    """Based on two lines, line1 from (0, freq_left) to (1, freq_right) and 
-    a horizontal line at freq_intersection, return the knum (x-value) where 
-    they intersect. It is not checked whether they intersect, so please take 
+    """Based on two lines, line1 from (0, freq_left) to (1, freq_right) and
+    a horizontal line at freq_intersection, return the knum (x-value) where
+    they intersect. It is not checked whether they intersect, so please take
     care of that.
     If you use this to get the intersection between two other consecutive
     knums, don't forget to add the left knum to the result.
@@ -303,7 +303,7 @@ def get_gap_bands(
     """Calculate the band gaps from the banddata.
 
     Return the band number after which a gap occurs (first band is band 1),
-    the highest frequency of the band just below the gap, the lowest frequency 
+    the highest frequency of the band just below the gap, the lowest frequency
     of the band just above the gap and the normalized gap width.
 
     *banddata* must have shape: (number_of_k_vecs, number_of_bands).
@@ -493,7 +493,7 @@ def distribute_pattern_images(
     # Build the regular expression pattern for parsing file names:
 
     # re that matches the output, i.e. field (e, d or h) or 'dpwr' etc.:
-    f = r'(?P<field>[edh]|hpwr|dpwr)'
+    f = r'(?P<field>[edh]|hpwr|dpwr|tot\.rpwr)'
     # re that matches the k number part, starting with '.':
     k = r'[.]k(?P<knum>\d+)'
     # re that matches the band number part, starting with '.':
@@ -683,7 +683,11 @@ def distribute_pattern_images(
         ax.set_aspect(ax_aspect)
 
         # set ticks, labels etc.:
-        if vertical_complex_pairs:
+        if num_cmplx_comps < 2:
+            klabelform = 'k{knum}'
+            xticks = [klabelform.format(knum=k) for k in knums]
+            yticks = [str(b) for b in bnums]
+        elif vertical_complex_pairs:
             klabelform = 'k{knum}'
             xticks = [klabelform.format(knum=k) for k in knums]
             bandlabelform = '{bandnum} ({ri})'
@@ -780,13 +784,14 @@ def do_runmode(
 
     :param sim: the Simulation object
     :param runmode: can be one of the following:
-        ''       : just create and return the simulation object
-        'ctl'    : just write the ctl file to disk
-        'sim'    : run the simulation and do all postprocessing
-        'postpc' : do all postprocessing; simulation should have run
-                   before!
-        'display': display all pngs done during postprocessing. This is
-                   the only mode that is interactive.
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
     :param num_processors:
         the number of processors used for the simulation.
     :param bands_plot_title:

@@ -28,7 +28,14 @@ from utility import distribute_pattern_images
 from kspace import KSpaceRectangular
 import log
 
-class Simulation(object): 
+def _remove_prefix_from_mode_name(mode):
+    """Remove a prefix ending with a hyphen ``-`` from *mode*.
+    E.g. if *mode* is ``sim-te`` return ``te``.
+
+    """
+    return mode.split('-', 1)[-1]
+
+class Simulation(object):
     def __init__(
             self, jobname, geometry, kspace=KSpaceRectangular(),
             resolution=defaults.default_resolution,
@@ -37,6 +44,7 @@ class Simulation(object):
             initcode=defaults.default_initcode,
             runcode=defaults.default_runcode,
             postcode=defaults.default_postcode,
+            modes=None,
             work_in_subfolder=True, clear_subfolder=True,
             logger=True, quiet=defaults.isQuiet):
         """Create a simulation object with all parameters describing the
@@ -47,6 +55,20 @@ class Simulation(object):
         strings with Scheme code which will be added to the MPB .ctl
         file as initialization code (initcode), as run commands
         (runcode) and as code executed after the simulation (postcode).
+
+        If modes is None (default), automatically detect the simulated
+        modes from runcode, otherwise specify a list of modes (e.g. 'te',
+        'zeven' etc.). Note that modes are used to extract (grep) the
+        frequencies and other data from MPB output or assign exported
+        files. Sometimes data in the output might need to be
+        additionally marked with a prefix, e.g. "sim-tefreqs:" for
+        te-mode frequencies which should solely be exported while normal
+        "tefreqs:" output should be ignored. In this case the mode
+        should be called "sim-te" where the "sim-" part acts as an
+        optional prefix. Only if no "sim-te<somedata>:" lines are found
+        in the output, "te<somedata>:" lines will also be searched and
+        the data exported. The prefix will always be ommited in
+        filenames of exported data.
 
         If work_in_subfolder is True (default), all simulation and log
         output will be placed in a separate subdirectory under the
@@ -168,11 +190,17 @@ class Simulation(object):
         del to_log
 
         # get modes from runcode:
-        self.modes = re.findall("\(run[-]?(.*?)[\s\)]", runcode, re.MULTILINE)
+        if modes is None:
+            self.modes = re.findall(
+                "\(run[-]?(.*?)[\s\)]", runcode, re.MULTILINE)
+        else:
+            self.modes = modes
+        # make them unique (some might occur multiple times in runcode):
+        self.modes = list(set(self.modes))
 
         self.number_of_tiles_to_output = defaults.number_of_tiles_to_output
 
-        # In 3D, there are no pure tm or te modes. MPB renames them 
+        # In 3D, there are no pure tm or te modes. MPB renames them
         # automatically to zodd and zeven, respectively. Do the same:
         if self.geometry.is3D:
             for i, mode in enumerate(self.modes):
@@ -189,15 +217,15 @@ class Simulation(object):
 
         new_environ_dict = {
             'GUILE_WARN_DEPRECATED': 'no',
-            # load scheme files also from pyMPB directory (e.g. dos.scm): 
+            # load scheme files also from pyMPB directory (e.g. dos.scm):
             'GUILE_LOAD_PATH' : path.dirname(path.abspath(graphics.__file__))}
         environ.update(new_environ_dict)
-        log.info('added to environment:' + 
-                 ''.join(['\n  {0}={1}'.format(key, environ[key]) for key in 
+        log.info('added to environment:' +
+                 ''.join(['\n  {0}={1}'.format(key, environ[key]) for key in
                          new_environ_dict.keys()]))
 
         log.info(
-            'pyMPB Simulation created with following properties:' + 
+            'pyMPB Simulation created with following properties:' +
             ''.join(['\npyMPBprop: {0}={1!r}'.format(key, val) for key, val in
                 self.__dict__.items()]) + '\n\n')
         # TODO log all parameters of Simulation object in such a way
@@ -214,7 +242,7 @@ class Simulation(object):
     def write_ctl_file(self, where='./'):
         filename = path.join(where, self.ctl_file)
         log.info("writing ctl file to %s" % filename)
-        log.info("### ctl file for reference: ###\n" + 
+        log.info("### ctl file for reference: ###\n" +
             str(self) + '\n### end of ctl file ###\n\n')
         with open(filename,'w') as input_file:
             input_file.write(str(self))
@@ -230,7 +258,7 @@ class Simulation(object):
                      "call:\n" +
                 " ".join([mpb_call_str, self.ctl_file]))
             log.info("Writing MPB output to %s" % self.out_file)
-            # write Time and ctl as reference:     
+            # write Time and ctl as reference:
             outputFile.write("This is a simulation started by pyMPB\n")
             starttime = datetime.now()
             outputFile.write("Date: " + str(starttime) + "\n")
@@ -250,13 +278,13 @@ class Simulation(object):
             # run MPB, write output to outputFile:
             # TODO can we also pipe MPB output to stdout, so the user can
             # see progress?
-            p = sp.Popen(mpb_call_str.split() + [self.ctl_file], 
+            p = sp.Popen(mpb_call_str.split() + [self.ctl_file],
                                stdout=outputFile,
                                stderr=sp.STDOUT,
                                cwd=self.workingdir)
             retcode = p.wait()
             endtime = datetime.now()
-            outputFile.write("finished on: %s (duration: %s)\n" % 
+            outputFile.write("finished on: %s (duration: %s)\n" %
                              (str(endtime), str(endtime - starttime)))
             outputFile.write("returncode: " + str(retcode))
             log.info("Simulation finished, returncode: " + str(retcode))
@@ -273,11 +301,11 @@ class Simulation(object):
 
         # make rectangular cell etc:
         callstr = defaults.mpbdata_call % dict(
-                    self.__dict__, 
-                    h5_file=self.eps_file + ':data', 
+                    self.__dict__,
+                    h5_file=self.eps_file + ':data',
                     output_file=defaults.temporary_epsh5)
         log.info("calling: {0}".format(callstr))
-        
+
         try:
             sp.call(callstr.split(), cwd=self.workingdir)
         except OSError as err:
@@ -285,7 +313,7 @@ class Simulation(object):
                         'without converting epsilon.h5 to png.'
                         '\n\tOSError message: {}\n'.format(err))
             return 1
-        
+
         # no error, continue:
         dct = dict(self.__dict__, h5_file=defaults.temporary_epsh5)
         # save dielectric to png:
@@ -298,7 +326,7 @@ class Simulation(object):
         for s in callstr:
             if not retcode:
                 log.info("calling: {0}".format(s))
-                retcode = retcode or sp.call(s.split(), 
+                retcode = retcode or sp.call(s.split(),
                                              cwd=self.workingdir)
 
         return retcode
@@ -376,7 +404,7 @@ class Simulation(object):
         # Build the regular expression pattern for parsing filenames:
 
         # re that matches the output, i.e. field (e, d or h) or 'dpwr' etc.:
-        f = r'(?P<field>[edh]|hpwr|dpwr)'
+        f = r'(?P<field>[edh]|hpwr|dpwr|tot\.rpwr)'
         # re that matches the k number part, starting with '.':
         k = r'[.]k\d+'
         # re that matches the band number part, starting with '.':
@@ -423,12 +451,12 @@ class Simulation(object):
 
             # make rectangular cell etc:
             callstr = defaults.mpbdata_call % dict(
-                        self.__dict__, 
-                        h5_file=fname, 
+                        self.__dict__,
+                        h5_file=fname,
                         output_file=defaults.temporary_h5)
             # note: never include :dataset here (or as -d),
             # because then mpb-data will only see the real
-            # or imaginary part, not both, and will not 
+            # or imaginary part, not both, and will not
             # properly apply the exponential phase shift
             # if multiple tiles are exported.
             log.debug("calling: {0}".format(callstr))
@@ -481,7 +509,7 @@ class Simulation(object):
                     log.debug('deleted {0}'.format(fname))
                 else:
                     # move h5 file to temporary folder:
-                    rename(path.join(self.workingdir, fname), 
+                    rename(path.join(self.workingdir, fname),
                            path.join(
                                self.workingdir,
                                defaults.temporary_h5_folder,
@@ -500,10 +528,16 @@ class Simulation(object):
         *dataname* is something like 'tefreqs', 'zevenfreqs', 'freqs',
         'yparity' or anything else that can be found in the output file, where
         the line starts with *dataname*, is followed by ':' and the data to be
-        exported in the same line.
+        exported in the same line. *dataname* may contain a prefix, ending
+        with a hyphen, before the actual data name, e.g. 'sim-tefreqs', in
+        which case only 'sim-tefreqs:' data will be exported. If the data in
+        output buffer does not contain a line with the prefixed data name,
+        the data name without prefix will be used. In any case, the output
+        file name will never contain the prefix.
 
         """
-        pp_file_name = '{0}_{1}.csv'.format(self.jobname, dataname)
+        dname_clean = _remove_prefix_from_mode_name(dataname)
+        pp_file_name = '{0}_{1}.csv'.format(self.jobname, dname_clean)
         pattern = r'^{0}:, (.+)'.format(dataname.lower())
         output_lines = [
             x + '\n' for x in re.findall(pattern, output_buffer, re.MULTILINE)]
@@ -514,8 +548,11 @@ class Simulation(object):
                         self.workingdir, pp_file_name), 'w') as pp_file:
                 pp_file.writelines(output_lines)
         else:
-            log.info("No {0} data found in output".format(dataname))
-
+            if dname_clean == dataname:
+                log.info("No {0} data found in output".format(dataname))
+            else:
+                # try again with dropped prefix:
+                return self._export_data_helper(output_buffer, dname_clean)
 
     def post_process(
             self, convert_field_patterns=True, project_bands_list=None):
@@ -580,6 +617,8 @@ class Simulation(object):
             for dataname in datanames:
                 self._export_data_helper(output_buffer, mode + dataname)
 
+            mode = _remove_prefix_from_mode_name(mode)
+
             # Save band frequency ranges to csv, from the just generated
             # freqs.csv. Needed e.g. if these bands are going to be
             # projected in another simulation.
@@ -587,7 +626,7 @@ class Simulation(object):
                 self.workingdir,
                 '{0}_{1}{{0}}.csv'.format(self.jobname, mode))
             data = np.loadtxt(
-                fnamebase.format('freqs'), delimiter=',', skiprows=1)
+                fnamebase.format('freqs'), delimiter=',', skiprows=1, ndmin=2)
             assert (self.numbands == data.shape[1] - 5)
             bandsmax = np.amax(data[:, 5:], axis=0)
             bandsmin = np.amin(data[:, 5:], axis=0)
@@ -688,14 +727,14 @@ class Simulation(object):
             # Name it back, otherwise h5topng can't handle the file:
             rename(self.eps_file + '~', self.eps_file)
             log.info("renamed {0} to {1}".format(
-                        self.eps_file + '~', self.eps_file)) 
+                        self.eps_file + '~', self.eps_file))
 
         if not self.epsilon_to_png() == 1:
             if convert_field_patterns:
                 self.fieldpatterns_to_png()
-    
+
             # delete temporary files:
-            if path.isfile(path.join(self.workingdir, 
+            if path.isfile(path.join(self.workingdir,
                                      defaults.temporary_epsh5)):
                 remove(path.join(self.workingdir, defaults.temporary_epsh5))
             if path.isfile(path.join(self.workingdir, defaults.temporary_h5)):
@@ -741,7 +780,8 @@ class Simulation(object):
             modes = [mode]
         for mode in modes:
             graphics.draw_bandstructure_2D(
-                jobname, mode, self.kspace, band, filled=filled, levels=levels,
+                jobname, _remove_prefix_from_mode_name(mode),
+                self.kspace, band, filled=filled, levels=levels,
                 lines=lines, labeled=labeled, legend=legend)
 
 
@@ -808,12 +848,13 @@ class Simulation(object):
         jobname = path.join(self.workingdir, self.jobname)
         # see if projected bands were calculated:
         projected = False not in [
-            path.isfile(jobname + '_{0}_projected.csv'.format(mode)) for
+            path.isfile(jobname + '_{0}_projected.csv'.format(
+                _remove_prefix_from_mode_name(mode))) for
             mode in self.modes]
         # draw data with matplotlib in one subplot:
         plotter = graphics.draw_bands(
             jobname,
-            self.modes,
+            [_remove_prefix_from_mode_name(mode) for mode in self.modes],
             x_axis_hint=x_axis_hint,
             title=title,
             crop_y=crop_y,
@@ -827,7 +868,11 @@ class Simulation(object):
             interactive_mode=show
         )
         # use returned plotter to add to figure:
-        #graphics.draw_dos(jobname, self.modes, custom_plotter=plotter)
+        if defaults.add_dos_to_bandplot:
+            graphics.draw_dos(
+                jobname,
+                [_remove_prefix_from_mode_name(mode) for mode in self.modes],
+                custom_plotter=plotter)
 
         if save:
             filename = jobname + '_bands.pdf'
@@ -861,6 +906,7 @@ class Simulation(object):
 
         """
         for mode in self.modes:
+            mode = _remove_prefix_from_mode_name(mode)
             dstfile_prefix = path.join(
                 self.workingdir, self.jobname + '_patterns')
             dirname = path.join(

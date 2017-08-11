@@ -40,42 +40,44 @@ def TriHoles2D(
         custom_k_space=None, modes=('te', 'tm')):
     """Create a 2D MPB Simulation of a triangular lattice of holes.
 
-    :param material: can be a string (e.g. SiN,
-    4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
-    value (float)
+    :param material:
+        can be a string (e.g. SiN, 4H-SiC-anisotropic_c_in_z; defined in
+        data.py) or just the epsilon value (float)
     :param radius: the radius of holes in units of the lattice constant
     :param numbands: number of bands to calculate
-    :param k_interpolation: number of the k-vectors between every two of
-    the used high symmetry points Gamma, M, K and Gamma again, so the
-    total number of simulated k-vectors will be 3*k_interpolation + 4.
-    Only used if no custom_custom_k_space is provided.
+    :param k_interpolation:
+        number of the k-vectors between every two of
+        the used high symmetry points Gamma, M, K and Gamma again, so the
+        total number of simulated k-vectors will be 3*k_interpolation + 4.
+        Only used if no custom_custom_k_space is provided.
     :param resolution: described in MPB documentation
     :param mesh_size: described in MPB documentation
     :param runmode: can be one of the following:
-        ''       : just create and return the simulation object
-        'ctl'    : create the sim object and save the ctl file
-        'sim' (default): run the simulation and do all postprocessing
-        'postpc' : do all postprocessing; simulation should have run
-                   before!
-        'display': display all pngs done during postprocessing. This is
-                   the only mode that is interactive.
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
     :param num_processors: number of processors used during simulation
     :param save_field_patterns: indicates whether field pattern h5 files
-    are generated during the simulation (at points of high symmetry)
+        are generated during the simulation (at points of high symmetry)
     :param convert_field_patterns: indicates whether field pattern h5
-    files should be converted to png (only when postprocessing)
+        files should be converted to png (only when postprocessing)
     :param containing_folder: the path to the folder which will contain
-    the simulation subfolder.
+        the simulation subfolder.
     :param job_name_suffix: Optionally specify a job_name_suffix
-    (appendix to the folder name etc.) which will be appended to the
-    jobname created automatically from the most important parameters.
+        (appendix to the folder name etc.) which will be appended to the
+        jobname created automatically from the most important parameters.
     :param bands_title_appendix: will be added to the title of the bands
-    diagram.
+        diagram.
     :param custom_k_space: By default, KSpaceTriangular with
-    k_interpolation interpolation steps are used. Provide any KSpace
-    object here to customize this. k_interpolation will then be ignored.
+        k_interpolation interpolation steps are used. Provide any KSpace
+        object here to customize this. k_interpolation will then be ignored.
     :param modes: a list of modes to run. Possible are 'te' and 'tm'.
-    Default: both
+        Default: both
     :return: the Simulation object
 
     """
@@ -163,46 +165,47 @@ def TriHolesSlab3D(
     holes.
 
     :param material: can be a string (e.g. SiN,
-    4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
-    value (float)
+        4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
+        value (float)
     :param radius: the radius of holes in units of the lattice constant
     :param thickness: slab thickness in units of the lattice constant
     :param numbands: number of bands to calculate
     :param k_interpolation: number of the k-vectors between every two of
-    the used high symmetry points Gamma, M, K and Gamma again, so the
-    total number of simulated k-vectors will be 3*k_interpolation + 4
+        the used high symmetry points Gamma, M, K and Gamma again, so the
+        total number of simulated k-vectors will be 3*k_interpolation + 4
     :param resolution: described in MPB documentation
     :param mesh_size: described in MPB documentation
     :param supercell_z: the height of the supercell in units of the
-    lattice constant
+        lattice constant
     :param runmode: can be one of the following:
-        ''       : just create and return the simulation object
-        'ctl'    : create the sim object and save the ctl file
-        'sim' (default): run the simulation and do all postprocessing
-        'postpc' : do all postprocessing; simulation should have run
-                   before!
-        'display': display all pngs done during postprocessing. This is
-                   the only mode that is interactive.
-    :param num_processors: number of processors used during simulation
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
+     :param num_processors: number of processors used during simulation
     :param save_field_patterns: indicates whether field pattern h5 files
-    are generated during the simulation (at points of high symmetry)
+        are generated during the simulation (at points of high symmetry)
     :param convert_field_patterns: indicates whether field pattern h5
-    files should be converted to png (only when postprocessing)
+        files should be converted to png (only when postprocessing)
     :param containing_folder: the path to the folder which will contain
-    the simulation subfolder.
+        the simulation subfolder.
     :param job_name_suffix: Optionally specify a job_name_suffix
-    (appendix to the folder name etc.) which will be appended to the
-    jobname created automatically from the most important parameters.
+        (appendix to the folder name etc.) which will be appended to the
+        jobname created automatically from the most important parameters.
     :param bands_title_appendix: will be added to the title of the bands
-    diagram.
+        diagram.
     :param custom_k_space: By default, KSpaceTriangular with
-    k_interpolation interpolation steps are used. Provide any KSpace
-    object here to customize this. k_interpolation will then be ignored.
+        k_interpolation interpolation steps are used. Provide any KSpace
+        object here to customize this. k_interpolation will then be ignored.
     :param modes: a list of modes to run. Possible are 'zeven', 'zodd'
-    or '' (latter meaning no distinction). Default: ['zeven', 'zodd']
+        or '' (latter meaning no distinction). Default: ['zeven', 'zodd']
     :param substrate_material: the material of an optional substrate,
-    see param material. Holes will not be extended into the substrate.
-    Default: None, i.e. the substrate is air.
+        see param material. Holes will not be extended into the substrate.
+        Default: None, i.e. the substrate is air.
     :return: the Simulation object
 
     """
@@ -324,73 +327,74 @@ def TriHoles2D_Waveguide(
     simulations where not run before.
 
     :param material: can be a string (e.g. SiN,
-    4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
-    value (float)
+        4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
+        value (float)
     :param radius: the radius of holes in units of the lattice constant
     :param mode: the mode to run. Possible are 'te' and 'tm'.
     :param numbands: number of bands to calculate
     :param k_steps: number of k steps along the waveguide direction
-    between 0 and 0.5 to simulate. This can also be a list of the
-    explicit k values (just scalar values for component along the
-    waveguide axis) to be simulated.
+        between 0 and 0.5 to simulate. This can also be a list of the
+        explicit k values (just scalar values for component along the
+        waveguide axis) to be simulated.
     :param supercell_size: the length of the supercell perpendicular to
-    the waveguide, in units of sqrt(3) times the lattice constant. If it
-    is not a odd number, one will be added.
+        the waveguide, in units of sqrt(3) times the lattice constant. If it
+        is not a odd number, one will be added.
     :param resolution: described in MPB documentation
     :param mesh_size: described in MPB documentation
     :param ydirection: set this if the waveguide should point along y,
-    otherwise (default) it will point along x. Use the default if you
-    want to use yparity data.
+        otherwise (default) it will point along x. Use the default if you
+        want to use yparity data.
     :param first_row_longitudinal_shift: shifts the holes next to the
-    waveguide by this amount, parallel to the waveguide direction.
+        waveguide by this amount, parallel to the waveguide direction.
     :param first_row_transversal_shift: shifts the holes next to the
-    waveguide by this amount, perpendicular to the waveguide direction.
+        waveguide by this amount, perpendicular to the waveguide direction.
     :param first_row_radius: The radius of the holes next to the
-    waveguide. If None (default), use radius.
+        waveguide. If None (default), use radius.
     :param second_row_longitudinal_shift: shifts the holes in the second
-    row next to the waveguide by this amount, parallel to the waveguide
-    direction
+        row next to the waveguide by this amount, parallel to the waveguide
+        direction
     :param second_row_transversal_shift: shifts the holes in the second
-    row next to the waveguide by this amount, perpendicular to the
-    waveguide direction
+        row next to the waveguide by this amount, perpendicular to the
+        waveguide direction
     :param second_row_radius: The radius of the holes in the second row
-    next to the waveguide. If None (default), use radius.
+        next to the waveguide. If None (default), use radius.
     :param runmode: can be one of the following:
-        ''       : just create and return the simulation object
-        'ctl'    : create the sim object and save the ctl file
-        'sim' (default): run the simulation and do all postprocessing
-        'postpc' : do all postprocessing; simulation should have run
-                   before!
-        'display': display all pngs done during postprocessing. This is
-                   the only mode that is interactive.
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
     :param num_processors: number of processors used during simulation
     :param projected_bands_folder: the path to the folder which will
-    contain the simulations of the unperturbed PhC, which is needed for
-    the projections perpendicular to the waveguide direction. If the
-    folder contains simulations run before, their data will be reused.
+        contain the simulations of the unperturbed PhC, which is needed for
+        the projections perpendicular to the waveguide direction. If the
+        folder contains simulations run before, their data will be reused.
     :param plot_complete_band_gap: If this is False, the band gap will be a
-    function of the k component along the waveguide. For each k,
-    a simulation with unperturbed photonic crystal will be run to get
-    the data. If this is True, only one unperturbed simulation will be
-    run to find the full direction independent bandgap.
+        function of the k component along the waveguide. For each k,
+        a simulation with unperturbed photonic crystal will be run to get
+        the data. If this is True, only one unperturbed simulation will be
+        run to find the full direction independent bandgap.
     :param save_field_patterns_kvecs: a list of k-vectors (3-tuples),
-    which indicates where field pattern h5 files are generated during
-    the simulation (only at bands in save_field_patterns_bandnums)
+        which indicates where field pattern h5 files are generated during
+        the simulation (only at bands in save_field_patterns_bandnums)
     :param save_field_patterns_bandnums: a list of band numbers (int,
-    starting at 1), which indicates where field pattern h5 files are
-    generated during the simulation (only at k-vectors in
-    save_field_patterns_kvecs)
+        starting at 1), which indicates where field pattern h5 files are
+        generated during the simulation (only at k-vectors in
+        save_field_patterns_kvecs)
     :param convert_field_patterns: indicates whether field pattern h5
-    files should be converted to png (only when postprocessing)
+        files should be converted to png (only when postprocessing)
     :param job_name_suffix: Optionally specify a job_name_suffix
-    (appendix to the folder name etc.) which will be appended to the
-    jobname created automatically from the most important parameters.
+        (appendix to the folder name etc.) which will be appended to the
+        jobname created automatically from the most important parameters.
     :param bands_title_appendix: will be added to the title of the bands
-    diagram.
+        diagram.
     :param plot_crop_y:
-    the band diagrams are automatically cropped before the last band
-    if plot_crop_y is True, alternatively use plot_crop_y to specify
-    the max. y-value where the plot will be cropped.
+        the band diagrams are automatically cropped before the last band
+        if plot_crop_y is True, alternatively use plot_crop_y to specify
+        the max. y-value where the plot will be cropped.
     :return: the Simulation object
 
     """
@@ -724,76 +728,77 @@ def TriHolesSlab3D_Waveguide(
     simulations where not run before.
 
     :param material: can be a string (e.g. SiN,
-    4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
-    value (float)
+        4H-SiC-anisotropic_c_in_z; defined in data.py) or just the epsilon
+        value (float)
     :param radius: the radius of holes in units of the lattice constant
     :param thickness: slab thickness in units of the lattice constant
     :param mode: the mode to run. Possible are 'zeven' and 'zodd'.
     :param numbands: number of bands to calculate
     :param k_steps: number of k steps along the waveguide direction
-    between 0 and 0.5 to simulate. This can also be a list of the
-    explicit k values (just scalar values for component along the
-    waveguide axis) to be simulated.
+        between 0 and 0.5 to simulate. This can also be a list of the
+        explicit k values (just scalar values for component along the
+        waveguide axis) to be simulated.
     :param supercell_size: the length of the supercell perpendicular to the
-    waveguide, in units of sqrt(3) times the lattice constant. If it is
-    not a odd number, one will be added.
+        waveguide, in units of sqrt(3) times the lattice constant. If it is
+        not a odd number, one will be added.
     :param supercell_z: the height of the supercell in units of the
-    lattice constant
+        lattice constant
     :param resolution: described in MPB documentation
     :param mesh_size: described in MPB documentation
     :param ydirection: set this if the waveguide should point along y,
-    otherwise (default) it will point along x. Use the default if you
-    want to use yparity data.
+        otherwise (default) it will point along x. Use the default if you
+        want to use yparity data.
     :param first_row_longitudinal_shift: shifts the holes next to the
-    waveguide by this amount, parallel to the waveguide direction.
+        waveguide by this amount, parallel to the waveguide direction.
     :param first_row_transversal_shift: shifts the holes next to the
-    waveguide by this amount, perpendicular to the waveguide direction.
+        waveguide by this amount, perpendicular to the waveguide direction.
     :param first_row_radius: The radius of the holes next to the
-    waveguide. If None (default), use radius.
+        waveguide. If None (default), use radius.
     :param second_row_longitudinal_shift: shifts the holes in the second
-    row next to the waveguide by this amount, parallel to the waveguide
-    direction
+        row next to the waveguide by this amount, parallel to the waveguide
+        direction
     :param second_row_transversal_shift: shifts the holes in the second
-    row next to the waveguide by this amount, perpendicular to the
-    waveguide direction
+        row next to the waveguide by this amount, perpendicular to the
+        waveguide direction
     :param second_row_radius: The radius of the holes in the second row
-    next to the waveguide. If None (default), use radius.
+        next to the waveguide. If None (default), use radius.
     :param runmode: can be one of the following:
-        ''       : just create and return the simulation object
-        'ctl'    : create the sim object and save the ctl file
-        'sim' (default): run the simulation and do all postprocessing
-        'postpc' : do all postprocessing; simulation should have run
-                   before!
-        'display': display all pngs done during postprocessing. This is
-                   the only mode that is interactive.
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
     :param num_processors: number of processors used during simulation
     :param projected_bands_folder: the path to the folder which will
-    contain the simulations of the unperturbed PhC, which is needed for
-    the projections perpendicular to the waveguide direction. If the
-    folder contains simulations run before, their data will be reused.
+        contain the simulations of the unperturbed PhC, which is needed for
+        the projections perpendicular to the waveguide direction. If the
+        folder contains simulations run before, their data will be reused.
     :param plot_complete_band_gap: If this is False, the band gap will be a
-    function of the k component along the waveguide. For each k,
-    a simulation with unperturbed photonic crystal will be run to get
-    the data. If this is True, only one unperturbed simulation will be
-    run to find the full direction independent bandgap.
+        function of the k component along the waveguide. For each k,
+        a simulation with unperturbed photonic crystal will be run to get
+        the data. If this is True, only one unperturbed simulation will be
+        run to find the full direction independent bandgap.
     :param save_field_patterns_kvecs: a list of k-vectors (3-tuples),
-    which indicates where field pattern h5 files are generated during
-    the simulation (only at bands in save_field_patterns_bandnums)
+        which indicates where field pattern h5 files are generated during
+        the simulation (only at bands in save_field_patterns_bandnums)
     :param save_field_patterns_bandnums: a list of band numbers (int,
-    starting at 1), which indicates where field pattern h5 files are
-    generated during the simulation (only at k-vectors in
-    save_field_patterns_kvecs)
+        starting at 1), which indicates where field pattern h5 files are
+        generated during the simulation (only at k-vectors in
+        save_field_patterns_kvecs)
     :param convert_field_patterns: indicates whether field pattern h5
-    files should be converted to png (only when postprocessing)
+        files should be converted to png (only when postprocessing)
     :param job_name_suffix: Optionally specify a job_name_suffix
-    (appendix to the folder name etc.) which will be appended to the
-    jobname created automatically from the most important parameters.
+        (appendix to the folder name etc.) which will be appended to the
+        jobname created automatically from the most important parameters.
     :param bands_title_appendix: will be added to the title of the bands
-    diagram.
+        diagram.
     :param plot_crop_y:
-    the band diagrams are automatically cropped before the last band
-    if plot_crop_y is True, alternatively use plot_crop_y to specify
-    the max. y-value where the plot will be cropped.
+        the band diagrams are automatically cropped before the last band
+        if plot_crop_y is True, alternatively use plot_crop_y to specify
+        the max. y-value where the plot will be cropped.
     :return: the Simulation object
 
     """
@@ -1128,3 +1133,251 @@ def TriHolesSlab3D_Waveguide(
         color_by_parity='y'
     )
 
+def TriHoles2D_Waveguide_effective_epsilon(
+        epsilon_cubspline_knots, epsilon_cubspline_coeffs,
+        band_number, init_frequency,
+        radius, mode='te', k_steps=17,
+        supercell_size=5, resolution=32, mesh_size=7,
+        ydirection=False,
+        first_row_longitudinal_shift=0,
+        first_row_transversal_shift=0,
+        first_row_radius=None,
+        second_row_longitudinal_shift=0,
+        second_row_transversal_shift=0,
+        second_row_radius=None,
+        runmode='sim', num_processors=2,
+        save_field_patterns_kvecs=list(),
+        convert_field_patterns=False,
+        job_name_suffix='', bands_title_appendix='',
+        plot_crop_y=False, extra_bands=0,
+        field_pattern_plot_k_selection=None):
+    """Create a 2D MPB Simulation of a triangular lattice of holes, with
+    a waveguide along the nearest neighbor direction, i.e. Gamma->K
+    direction.
+
+    The background material epsilon will be dependent on frequency. For this
+    to work with MPB, for each k-vec a number of simulations must be run
+    until the frequency of a single band of interest (band_number) and the
+    frequency used for the material converge to a common value.
+
+    The simulation is done with a rectangular super cell.
+
+    :param epsilon_cubspline_knots:
+        An array of frequencies, separating a frequency interval into
+        segments. In each segment, the material epsilon is defined by
+        a cubic polynomial. Outside the interval spanned by these
+        frequencies, epsilon will be extrapolated by the polynomials in
+        the outermost segments. If the epsilon function was fitted with
+        a ``scipy.interpolate.CubicSpline``, this is its
+        ``CubicSpline.x`` attribute.
+    :param epsilon_cubspline_coeffs:
+        A matrix of floats with shape (4, n-1), with `n` the length of
+        epsilon_cubspline_knots; ``epsilon_cubspline_coeffs[k, i]`` is
+        the coefficient for the polynomial ``(x-x[i])**(3-k)`` on
+        the segment between ``epsilon_cubspline_knots[i]`` and
+        ``epsilon_cubspline_knots[i+1]``. If the epsilon function was
+        fitted with a ``scipy.interpolate.CubicSpline``, this is its
+        ``CubicSpline.c`` attribute.
+    :param band_number: The simulation can only be run for a single
+        band. Choose it here. The band with the lowest frequency is
+        ``band_number=1``.
+    :param init_frequency: A crude initial guess for the frequency
+    :param radius:
+        the radius of holes in units of the lattice constant
+    :param mode:
+        the mode to run. Possible are 'te' and 'tm'.
+    :param k_steps: number of k steps along the waveguide direction
+        between 0 and 0.5 to simulate. This can also be a list of the
+        explicit k values (just scalar values for component along the
+        waveguide axis) to be simulated.
+    :param supercell_size: the length of the supercell perpendicular to
+        the waveguide, in units of sqrt(3) times the lattice constant.
+        If it is not a odd number, one will be added.
+    :param resolution: described in MPB documentation
+    :param mesh_size: described in MPB documentation
+    :param ydirection: set this if the waveguide should point along y,
+        otherwise (default) it will point along x. Use the default if
+        you want to use yparity data.
+    :param first_row_longitudinal_shift: shifts the holes next to the
+        waveguide by this amount, parallel to the waveguide direction.
+    :param first_row_transversal_shift: shifts the holes next to the
+        waveguide by this amount, perpendicular to the waveguide
+        direction.
+    :param first_row_radius: The radius of the holes next to the
+        waveguide. If None (default), use radius.
+    :param second_row_longitudinal_shift: shifts the holes in the second
+        row next to the waveguide by this amount, parallel to the
+        waveguide direction
+    :param second_row_transversal_shift: shifts the holes in the second
+        row next to the waveguide by this amount, perpendicular to the
+        waveguide direction
+    :param second_row_radius: The radius of the holes in the second row
+        next to the waveguide. If None (default), use radius.
+    :param runmode: can be one of the following:
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
+    :param num_processors: number of processors used during simulation
+    :param save_field_patterns_kvecs: a list of k-vectors (3-tuples),
+        which indicates where field pattern h5 files are generated during
+        the simulation
+    :param convert_field_patterns: indicates whether field pattern h5
+        files should be converted to png (only when postprocessing)
+    :param job_name_suffix: Optionally specify a job_name_suffix
+        (appendix to the folder name etc.) which will be appended to the
+        jobname created automatically from the most important parameters.
+    :param bands_title_appendix: will be added to the title of the bands
+        diagram.
+    :param plot_crop_y:
+        Optionally define a min. and max. frequency value (in a 2-tuple)
+        where the band diagram will be cropped.
+    :param extra_bands:
+        number of extra bands to calculate above band_number. Their
+        frequencies will be faulty since they were calculated with the
+        wrong effective epsilon, but perhaps you need them for
+        reference.
+    :return: the Simulation object
+
+    """
+
+    # these k points will be simulated (along waveguide):
+    if isinstance(k_steps, (int, float)):
+        k_steps = int(k_steps)
+        k_points = np.linspace(0, 0.5, num=k_steps, endpoint=True)
+    else:
+        k_points = np.array(k_steps)
+
+    # If a longitudinal shift is used, inversion symmetry is broken:
+    if ((first_row_longitudinal_shift or second_row_longitudinal_shift) and
+        'mpbi' in defaults.mpb_call):
+            log.info('default MPB to use includes inversion symmetry: '
+                 '{0}. '.format(defaults.mpb_call) +
+                 'Shift of holes specified, which breaks inv. symmetry. '
+                 'Will fall back to MPB without inv. symm.: {0}'.format(
+                     defaults.mpb_call.replace('mpbi', 'mpb')
+                 ))
+            defaults.mpb_call = defaults.mpb_call.replace('mpbi', 'mpb')
+
+    # make it odd:
+    if supercell_size % 2 == 0:
+        supercell_size += 1
+    # half of the supercell (floored):
+    sch = int(supercell_size / 2)
+
+    # Create geometry and add objects.
+    objects = get_triangular_phc_waveguide_air_rods(
+        radius=radius,
+        supercell_size=supercell_size,
+        ydirection=ydirection,
+        first_row_longitudinal_shift=first_row_longitudinal_shift,
+        first_row_transversal_shift=first_row_transversal_shift,
+        first_row_radius=first_row_radius,
+        second_row_longitudinal_shift=second_row_longitudinal_shift,
+        second_row_transversal_shift=second_row_transversal_shift,
+        second_row_radius=second_row_radius)
+
+    if ydirection:
+        geom = Geometry(
+            width='(* (sqrt 3) %i)' % supercell_size,
+            height=1,
+            triangular=False,
+            objects=objects
+        )
+        kspaceW1 = KSpace(
+            points_list=[(0, ky, 0) for ky in k_points],
+            k_interpolation=0,
+        )
+    else:
+        geom = Geometry(
+            width=1,
+            height='(* (sqrt 3) %i)' % supercell_size,
+            triangular=False,
+            objects=objects
+        )
+        kspaceW1 = KSpace(
+            points_list=[(kx, 0, 0) for kx in k_points],
+            k_interpolation=0,
+        )
+
+    jobname = 'TriHoles2D_W1_effeps_band{0:02.0f}_r{1:03.0f}'.format(
+                    band_number, radius * 1000)
+
+    initcode = '\n'.join([
+        defaults.default_initcode,
+        '; initial guess for frequency:',
+        '(define init-freq {0:.3f})\n'.format(init_frequency),
+        '; the proper epsilon will be applied to the frequency of this band:',
+        '(define bandnum {0:.0f})'.format(band_number)])
+
+    runcode = ''
+    if defaults.newmpb:
+        runcode = '(optimize-grid-size!)\n\n'
+
+    epsknots = ''.join(
+        '\n    ' + ' '.join(
+            str(x) for x in epsilon_cubspline_knots[i:i + 4]
+        )
+        for i in range(0, len(epsilon_cubspline_knots), 4)
+    )
+    epscoeffs = ''.join(
+        '\n  (' + ''.join(
+            '\n    ' + ' '.join(
+                str(x) for x in epsilon_cubspline_coeffs[j, i:i + 4]
+            )
+            for i in range(0, len(epsilon_cubspline_coeffs[j]), 4)
+        ) + '\n  )'
+        for j in range(len(epsilon_cubspline_coeffs))
+    )
+    if mode == 'te':
+        outputfuncs = defaults.output_funcs_te
+    else:
+        outputfuncs = defaults.output_funcs_tm
+
+    bandfuncs = ("\n" + 20 * " ").join(
+        map(str.strip,
+            defaults.default_band_func(
+                save_field_patterns_kvecs, ' '.join(outputfuncs)
+            ).strip().split('\n')))
+
+    rundict = {
+        'epsknots': epsknots,
+        'epscoeffs': epscoeffs,
+        'mode_lower': mode.lower(),
+        'mode_upper': mode.upper(),
+        'bandfuncs': bandfuncs}
+
+    runcode += defaults.template_initcode_epsilon_function % rundict
+    runcode += defaults.template_runcode_epsilon_function % rundict
+
+    sim = Simulation(
+        jobname=jobname + job_name_suffix,
+        geometry=geom,
+        kspace=kspaceW1,
+        numbands=band_number + extra_bands,
+        resolution=resolution,
+        mesh_size=mesh_size,
+        initcode=initcode,
+        postcode='',
+        runcode=runcode,
+        clear_subfolder=runmode.startswith('s') or runmode.startswith('c'))
+
+    draw_bands_title = (
+        'Hex. PhC W1; band {0:02.0f}, radius={1:0.3f}'.format(
+            band_number, radius) +
+        bands_title_appendix)
+
+    return do_runmode(
+        sim, runmode, num_processors, draw_bands_title,
+        plot_crop_y=plot_crop_y,
+        convert_field_patterns=convert_field_patterns,
+        field_pattern_plot_k_selection=field_pattern_plot_k_selection,
+        field_pattern_plot_filetype=defaults.field_dist_filetype,
+        x_axis_hint=[5, "{1}" if ydirection else "{0}"],
+        project_bands_list=None,
+        color_by_parity='y'
+    )

@@ -142,7 +142,7 @@ isQuiet = False
 log_format = "%(asctime)s %(levelname)s: %(message)s"
 log_datefmt = "%d.%m.%Y %H:%M:%S"
 
-template = '''%(initcode)s
+template = """%(initcode)s
 
 (set! geometry-lattice %(lattice)s)
 
@@ -160,7 +160,273 @@ template = '''%(initcode)s
 
 %(postcode)s
 
-(display-eigensolver-stats)'''
+(display-eigensolver-stats)"""
+
+# template for initcode used for simulations that use a
+# frequency dependent epsilon:
+template_initcode_epsilon_function = r"""
+; #######################################################
+; ############ frequency dependend epsilon ##############
+; #######################################################
+
+; the knots of the cubic spline describing the
+; frequency dependent epsilon function:
+(define epsknots (list %(epsknots)s))
+
+; the coefficients of the cubic spline describing the
+; frequency dependent epsilon function:
+(define epscoeffs #2(%(epscoeffs)s))
+
+; a node for a segment tree realized by a simple list:
+(define (segtree-node boundary left right) (list boundary left right))
+
+(define (build-segment-tree xlist . ilist)
+    ;Return the root segtree-node to a segment tree of a partitioned interval.
+    ;Built using xlist as list of segment boundaries.
+    ;The branches are segtree-nodes, the leaves are indexes (optionally
+    ;given by ilist, must have same length than xlist).
+    (let ( (count (length xlist)) )
+        (if (null? ilist)
+            ; initialize list of indexes, usually on first call:
+            (set! ilist (arith-sequence 0 1 count))
+        )
+        (case count
+            ((0) 0) ; should never get here
+            ((1) ; arrived at a single interval, i.e. a leave;
+                 ; Don't return a segtree-node, just the index of the interval:
+                (car ilist)
+            )
+            (else ; split the list of interval boundaries in half:
+                (let ( (halfway (quotient count 2)) )
+                    (segtree-node
+                        (list-ref xlist halfway)
+                        (apply build-segment-tree
+                            (list-head xlist halfway)
+                            (list-head ilist halfway))
+                        (apply build-segment-tree
+                            (list-tail xlist halfway)
+                            (list-tail ilist halfway))
+                    )
+                ) ; let
+            ) ; else
+        ) ; case
+    ) ; let
+) ; define (build-segment-tree )
+
+(define (find-index x segtree)
+    ;Return the index of the segment where x is located.
+    ;segtree is the root of a segment tree of segtree-nodes.
+    ;The segments are interpreted this way:
+    ;(note that x0 is ignored)
+    ;(-inf, x1) [x1 x2) [x2 x3) [x3 x4) [x4 +inf)
+    (if (list? segtree)
+        (if (< x (car segtree))
+            (find-index x (cadr segtree))
+            (find-index x (caddr segtree))
+        )
+        segtree
+    )
+)
+
+; Build the segment tree from epsknots:
+; It is important to drop the last limit, since the last segment goes to +inf.
+; Don't drop the first limit, though.
+(define segtree-root
+    (build-segment-tree (list-head epsknots (- (length epsknots) 1))) )
+
+; the frequency dependent epsilon function:
+(define (epsfunc f)
+    (let (
+            ; find the segment index where f is located:
+            (ind (find-index f segtree-root))
+            ; third degree polygon:
+            (k 3) )
+
+        (if (or (< f (car epsknots))
+                (> f (list-ref epsknots (- (length epsknots) 1))) )
+            (print
+                "sim-info: WARNING: extrapolated epsilon for frequency "
+                f "\n")
+        )
+        ; evaluate and return the polygon:
+        (apply + (map
+            (lambda (m)
+                (*
+                    (array-ref epscoeffs m ind)
+                    (expt ; power
+                        (- f (list-ref epsknots ind))
+                        (- k m)
+                    )
+                )
+            ) ; lambda
+            (arith-sequence 0 1 (+ k 1))
+        )); map ; apply
+    )
+)
+
+
+; #######################################################
+; ################### run functions #####################
+; #######################################################
+
+; Run an MPB simulation at kvec, with default-material eps. Return the
+; frequency of band bandnum:
+(define (simulate-at-eps eps kvec bandnum p reset-fields?)
+    (print "\nsim-info: Setting default-material epsilon: " eps "\n")
+    (set! default-material (make dielectric (epsilon eps)) )
+    (init-params p reset-fields?)
+    (set! current-k kvec)
+    (solve-kpoint kvec)
+    (print "sim-info: frequency: " (list-ref freqs (- bandnum 1)) "\n")
+    (list-ref freqs (- bandnum 1))
+)
+
+
+(define (run-sim-%(mode_lower)s
+            eps-func kvec bandnum init-freq tolerance p . band-functions)
+    (let (  (left-f init-freq)
+            (right-f init-freq)
+            ; frequency steps to determine initial bracketing:
+            (init-freq-steps (* 0.01 init-freq))
+            (kpoint-index (+ (list-index k-points kvec) 1))
+            (temp "")
+            (result 0)
+            ; At a single given bandnum n and kvec k, the MPB simulation
+            ; returns a frequency at a given effective eps, f_kn(eps).
+            ; But, eps is a function of frequency: eps = eps(f^)
+            ; So, to get the frequency at the proper eps, we must find the
+            ; root of the function y = (x - f_kn(eps(x))).
+            ; This is this function:
+            (ffunc (lambda (f)
+                (let ( (eps (eps-func f)) )
+                    (- f (simulate-at-eps eps kvec bandnum p false))
+                ) ; let
+            ))
+         )
+
+        ; don't be interactive if we call (run-sim-%(mode_lower)s)
+        (set! interactive? false)
+
+        ; ##### bracket freq of interest #####
+        (cond
+            ((< (ffunc init-freq) 0)
+                (set! right-f
+                    (do ((f (+ init-freq init-freq-steps)
+                            (+ f init-freq-steps)))
+                        ((> (ffunc f) 0) f) ) ;do
+                ); set right-f
+            )
+            (else
+                (set! left-f
+                    (do ((f (- init-freq init-freq-steps)
+                            (- f init-freq-steps)))
+                        ((< (ffunc f) 0) f) ) ;do
+                ); set left-f
+            )
+        ) ; cond
+
+        ;(print "sim-debug: init: " init-freq " -> " (ffunc init-freq) "\n")
+        ;(print "sim-debug: left: " left-f " -> " (ffunc left-f) "\n")
+        ;(print "sim-debug: right: " right-f " -> " (ffunc right-f) "\n")
+        (print "sim-info: bracketing end\n")
+
+
+        ; ########### find root ###########
+        (set! result (find-root ffunc tolerance left-f right-f))
+
+        ; run simulation one last time with result, which was not run
+        ; in find-root before:
+        (set! result (simulate-at-eps (eps-func result) kvec bandnum p false))
+
+        ; set output variables:
+        (set! all-freqs (cons freqs all-freqs))
+        (set! band-range-data
+            (update-band-range-data band-range-data freqs kvec))
+        (set! eigensolver-iters
+            (append eigensolver-iters
+                (list (/ iterations num-bands))))
+
+        ; print results:
+
+        ; if this is the first k point, print out a header line for
+        ; the frequency grep data:
+        (if (eqv? (car k-points) kvec)
+            (begin
+                (print "sim-" parity "freqs:, k index, k1, k2, k3, kmag/2pi")
+                (do ( (i 0 (+ i 1)) )
+                    (( = i num-bands) (print "\n"))
+                    (print ", band " (+ i 1)) ))
+        ) ; if
+        (print "sim-" parity "freqs:, " kpoint-index ", "
+            (vector3-x kvec) ", " (vector3-y kvec) ", " (vector3-z kvec) ", "
+            (vector3-norm kvec))
+        (do ( (i 0 (+ i 1)) )
+            (( = i num-bands) (print "\n"))
+            (print ", " (list-ref freqs i)) )
+
+        (print "sim-result: " kpoint-index ", band "
+            bandnum ", " result "\n")
+
+        ; As we only calculate one kpoint after we call init-params,
+        ; the mpb-internal kpoint-index is always 1. This affects the
+        ; output functions, which output to files with the kpoint-index
+        ; in their names. So we temporarily correct this index:
+        (set-kpoint-index kpoint-index)
+
+        ; We also correct the mode name for the display-functions,
+        ; so the output can be grepped like the frequencies with the "sim-"
+        ; prefix:
+        (set! temp parity)
+        (set! parity (string-append "sim-" parity))
+
+        ; run band functions (only for bandnum):
+        (map (lambda (fun)
+                 (if (zero? (procedure-num-args fun))
+                     (fun)
+                     (fun bandnum)))
+            band-functions)
+
+        ; Change it back so it does not break things:
+        (set-kpoint-index 1)
+        (set! parity temp)
+
+    ) ; let
+) ; define
+
+"""
+
+# template for runcode used for simulations that use a
+# frequency dependent epsilon:
+template_runcode_epsilon_function = r"""
+; #######################################################
+; ################## run simulation #####################
+; #######################################################
+
+; output epsilon (with approx. background):
+(set! default-material (make dielectric (epsilon (epsfunc init-freq))))
+(init-params %(mode_upper)s false)
+(output-epsilon)
+
+(set! total-run-time (+ total-run-time
+    (begin-time "sim-info: total elapsed time for run: "
+        (map (lambda (kvec)
+            (begin-time "sim-info: elapsed time for k point: "
+                (run-sim-%(mode_lower)s
+                    epsfunc kvec bandnum init-freq 1e-4 %(mode_upper)s
+                    %(bandfuncs)s
+            ))
+        ) k-points)
+    )))
+
+; put all-freqs in the right order:
+(set! all-freqs (reverse all-freqs))
+
+(print-dos 0 1.2 121 "sim-")
+
+(print "done.\n")
+"""
+
+
 
 
 
@@ -244,6 +510,9 @@ add_epsilon_as_inset = False
 epsilon_inset_location = 4
 epsilon_inset_zoom = 0.5
 epsilon_inset_transpose = False
+
+# add density of states to bandplot?
+add_dos_to_bandplot=False
 
 
 def default_onclick(event, bandplotter):

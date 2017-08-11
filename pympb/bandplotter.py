@@ -397,7 +397,7 @@ class BandPlotter:
         self._ax.set_ylabel('')
 
         # matplotlib sometimes adds padding; remove it:
-        self._ax.set_xlim(min(self._x_data), max(self._x_data))
+        #self._ax.set_xlim(min(self._x_data), max(self._x_data))
         # but only remove y-padding if y-data must be cropped:
         if (self._crop_max_y_val is not None or
             self._crop_min_y_val is not None):

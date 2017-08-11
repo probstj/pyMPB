@@ -53,7 +53,8 @@
   (broaden (fold-left append '() all-freqs)))
 
 ; Output the DOS from all-freqs, at num-freq points from freq-min to freq-max.
-(define (print-dos freq-min freq-max num-freq)
-  (let ((dos (all-freqs-broaden)))
-    (map (lambda (f) (print parity "dos:, " f ", " (dos f) "\n"))
+(define (print-dos freq-min freq-max num-freq . prefix)
+  (let ((dos (all-freqs-broaden))
+        (prefix (if (null? prefix) "" (car prefix))))
+    (map (lambda (f) (print prefix parity "dos:, " f ", " (dos f) "\n"))
 	 (interpolate (max 0 (- num-freq 2)) (list freq-min freq-max)))))
