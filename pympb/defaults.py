@@ -304,6 +304,9 @@ template_initcode_epsilon_function = r"""
             ))
          )
 
+        (print "sim-info: running simulation at k = " kvec
+               " for band " bandnum "\n")
+
         ; don't be interactive if we call (run-sim-%(mode_lower)s)
         (set! interactive? false)
 
@@ -313,14 +316,18 @@ template_initcode_epsilon_function = r"""
                 (set! right-f
                     (do ((f (+ init-freq init-freq-steps)
                             (+ f init-freq-steps)))
-                        ((> (ffunc f) 0) f) ) ;do
+                        ((> (ffunc f) 0) f)
+                        (set! left-f f)
+                    ) ;do
                 ); set right-f
             )
             (else
                 (set! left-f
                     (do ((f (- init-freq init-freq-steps)
                             (- f init-freq-steps)))
-                        ((< (ffunc f) 0) f) ) ;do
+                        ((< (ffunc f) 0) f)
+                        (set! right-f f)
+                    ) ;do
                 ); set left-f
             )
         ) ; cond
@@ -411,10 +418,14 @@ template_runcode_epsilon_function = r"""
     (begin-time "sim-info: total elapsed time for run: "
         (map (lambda (kvec)
             (begin-time "sim-info: elapsed time for k point: "
+                %(preparation)s
                 (run-sim-%(mode_lower)s
                     epsfunc kvec bandnum init-freq 1e-4 %(mode_upper)s
                     %(bandfuncs)s
-            ))
+                )
+                ; update init-freq for the next kvec
+                (set! init-freq (list-ref freqs (- bandnum 1)) )
+            )
         ) k-points)
     )))
 

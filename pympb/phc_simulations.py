@@ -1138,7 +1138,7 @@ def TriHoles2D_Waveguide_effective_epsilon(
         band_number, init_frequency,
         radius, mode='te', k_steps=17,
         supercell_size=5, resolution=32, mesh_size=7,
-        ydirection=False,
+        ydirection=False, ensure_y_parity='no',
         first_row_longitudinal_shift=0,
         first_row_transversal_shift=0,
         first_row_radius=None,
@@ -1198,6 +1198,15 @@ def TriHoles2D_Waveguide_effective_epsilon(
     :param ydirection: set this if the waveguide should point along y,
         otherwise (default) it will point along x. Use the default if
         you want to use yparity data.
+    :param ensure_y_parity: (default: 'no')
+        This can be either 'even' or 'odd', in which case the parity
+        of *band_number* is checked in an additional quick simulation
+        run at *init_frequency* before the real simulation starts.
+        If the parity does not match the desired parity, *band_number*
+        is increased until it matches. This is done separately for each
+        k-vector, and starts each time at the originally given
+        *band_number* again. If this feature is used, *extra_bands* is
+        automatically increased by 2.
     :param first_row_longitudinal_shift: shifts the holes next to the
         waveguide by this amount, parallel to the waveguide direction.
     :param first_row_transversal_shift: shifts the holes next to the
@@ -1304,8 +1313,11 @@ def TriHoles2D_Waveguide_effective_epsilon(
             k_interpolation=0,
         )
 
-    jobname = 'TriHoles2D_W1_effeps_band{0:02.0f}_r{1:03.0f}'.format(
-                    band_number, radius * 1000)
+    jobname = (
+        'TriHoles2D_W1_effeps_band{0:02.0f}{1}_r{2:03.0f}_res{3:03.0f}'.format(
+            band_number,
+            ensure_y_parity if ensure_y_parity in ['even', 'odd'] else '',
+            radius * 1000, resolution))
 
     initcode = '\n'.join([
         defaults.default_initcode,
@@ -1333,6 +1345,7 @@ def TriHoles2D_Waveguide_effective_epsilon(
         ) + '\n  )'
         for j in range(len(epsilon_cubspline_coeffs))
     )
+
     if mode == 'te':
         outputfuncs = defaults.output_funcs_te
     else:
@@ -1352,6 +1365,35 @@ def TriHoles2D_Waveguide_effective_epsilon(
         'bandfuncs': bandfuncs}
 
     runcode += defaults.template_initcode_epsilon_function % rundict
+
+    if ensure_y_parity in ['even', 'odd']:
+        extra_bands += 2
+        runcode += (
+            '\n'
+            '(define bandnum-bak bandnum)\n'
+            '(define (get-y-%s-bandnum initial-b eps kvec)\n'
+            '    (let ( (res resolution)\n'
+            '           (pars \'()) )\n'
+            '        ; run at lower resolution\n'
+            '        (set! resolution (/ resolution 2))\n'
+            '        (print "sim-info: running sim to check y-parity")\n'
+            '        (simulate-at-eps eps kvec bandnum %s true)\n'
+            '        (set! resolution res)\n'
+            '        (set! pars (compute-yparities))\n'
+            '        (do ( (bi (- initial-b 1) (+ bi 1)) )\n'
+            '            ( (%s (list-ref pars bi)) (+ bi 1)))\n'
+            '))\n\n'% (
+                ensure_y_parity, mode.upper(),
+                ['> -0.5', '< 0.5'][['odd', 'even'].index(ensure_y_parity)])
+        )
+        preparation = (
+            '(set! bandnum '
+            '(get-y-%s-bandnum '
+            'bandnum-bak (epsfunc init-freq) kvec))' % ensure_y_parity)
+    else:
+        preparation = ''
+    rundict['preparation'] = preparation
+
     runcode += defaults.template_runcode_epsilon_function % rundict
 
     sim = Simulation(
