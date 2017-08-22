@@ -845,8 +845,10 @@ def do_runmode(
         simulations containing the bands to be projected. The list must
         have exactly one entry for each k-vector of the current
         simulation, or only one entry if the gap to plot stays the same
-        for all k-vectors. Leave this None if there are no bands to be
-        projected or no band gap to plot.
+        for all k-vectors. Alternatively, this can be a 2-tuple of
+        floats, which describe the lower and upper band gap frequencies.
+        Leave this None if there are no bands to be projected or no band
+        gap to plot.
     :param color_by_parity:
         Specify 'y' or 'z' to color the plot lines with the data taken
         from the parity files <jobname>_<mode>[z/y]parity.csv.

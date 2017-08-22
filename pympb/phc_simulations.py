@@ -1149,7 +1149,7 @@ def TriHoles2D_Waveguide_effective_epsilon(
         save_field_patterns_kvecs=list(),
         convert_field_patterns=False,
         job_name_suffix='', bands_title_appendix='',
-        plot_crop_y=False, extra_bands=0,
+        plot_crop_y=False, extra_bands=0, gap=None,
         field_pattern_plot_k_selection=None):
     """Create a 2D MPB Simulation of a triangular lattice of holes, with
     a waveguide along the nearest neighbor direction, i.e. Gamma->K
@@ -1250,6 +1250,9 @@ def TriHoles2D_Waveguide_effective_epsilon(
         frequencies will be faulty since they were calculated with the
         wrong effective epsilon, but perhaps you need them for
         reference.
+    :param gap:
+        Optional tuple of the lower and upper band gap frequencies,
+        if you want to add the gap to the band diagram (default: None).
     :return: the Simulation object
 
     """
@@ -1420,6 +1423,6 @@ def TriHoles2D_Waveguide_effective_epsilon(
         field_pattern_plot_k_selection=field_pattern_plot_k_selection,
         field_pattern_plot_filetype=defaults.field_dist_filetype,
         x_axis_hint=[5, "{1}" if ydirection else "{0}"],
-        project_bands_list=None,
+        project_bands_list=gap,
         color_by_parity='y'
     )
