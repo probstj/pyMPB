@@ -98,6 +98,11 @@ default_initcode = (
 default_postcode = ''
 default_runcode = '(run-te)'
 
+# data descriptors to try and grep in MPB-output after simulation:
+# (Simulation.postprocess() will grep for `<mode><dataname>:`, e.g. `tefreqs`
+# and save grepped data to the file `<jobname>_<mode><dataname>.csv`)
+grep_datanames = ['freqs', 'velocity', 'dos', 'yparity', 'zparity']
+
 number_of_tiles_to_output = 3
 # Field patterns transformed to PNG will be placed in subfolders named
 # (field_output_folder_prefix + '_' + mode):
@@ -371,8 +376,25 @@ template_initcode_epsilon_function = r"""
             (( = i num-bands) (print "\n"))
             (print ", " (list-ref freqs i)) )
 
-        (print "sim-result: " kpoint-index ", band "
-            bandnum ", " result "\n")
+        ; if this is the first k point, print out a header line for
+        ; the sim-result grep data:
+        (if (eqv? (car k-points) kvec)
+            (begin
+                (print "sim-" parity "result:, k index, k1, k2, k3, kmag/2pi, "
+                       "band number, frequency, y-parity, z-parity, "
+                       "velocity-x, velocity-y, velocity-z\n"))
+        ) ; if
+        (print "sim-" parity "result:, " kpoint-index ", "
+            (vector3-x kvec) ", " (vector3-y kvec) ", " (vector3-z kvec) ", "
+            (vector3-norm kvec) ", " bandnum ", " result
+            ", " (list-ref (compute-yparities) (- bandnum 1))
+            ", " (list-ref (compute-zparities) (- bandnum 1))
+            ", " (compute-1-group-velocity-component
+                  (cartesian->reciprocal (vector3 1 0 0)) bandnum)
+            ", " (compute-1-group-velocity-component
+                  (cartesian->reciprocal (vector3 0 1 0)) bandnum)
+            ", " (compute-1-group-velocity-component
+                  (cartesian->reciprocal (vector3 0 0 1)) bandnum) "\n")
 
         ; As we only calculate one kpoint after we call init-params,
         ; the mpb-internal kpoint-index is always 1. This affects the

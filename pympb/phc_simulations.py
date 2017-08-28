@@ -585,8 +585,6 @@ def TriHoles2D_Waveguide(
     # make it odd:
     if supercell_size % 2 == 0:
         supercell_size += 1
-    # half of the supercell (floored):
-    sch = int(supercell_size / 2)
 
     # Create geometry and add objects.
     objects = get_triangular_phc_waveguide_air_rods(
@@ -995,8 +993,6 @@ def TriHolesSlab3D_Waveguide(
     # make it odd:
     if supercell_size % 2 == 0:
         supercell_size += 1
-    # half of the supercell (floored):
-    sch = int(supercell_size / 2)
 
     # Create geometry and add objects.
     objects = get_triangular_phc_waveguide_air_rods(
@@ -1148,6 +1144,7 @@ def TriHoles2D_Waveguide_effective_epsilon(
         runmode='sim', num_processors=2,
         save_field_patterns_kvecs=list(),
         convert_field_patterns=False,
+        containing_folder='./',
         job_name_suffix='', bands_title_appendix='',
         plot_crop_y=False, extra_bands=0, gap=None,
         field_pattern_plot_k_selection=None):
@@ -1237,6 +1234,8 @@ def TriHoles2D_Waveguide_effective_epsilon(
         the simulation
     :param convert_field_patterns: indicates whether field pattern h5
         files should be converted to png (only when postprocessing)
+    :param containing_folder: the path to the folder which will contain
+        the simulation subfolder.
     :param job_name_suffix: Optionally specify a job_name_suffix
         (appendix to the folder name etc.) which will be appended to the
         jobname created automatically from the most important parameters.
@@ -1278,8 +1277,6 @@ def TriHoles2D_Waveguide_effective_epsilon(
     # make it odd:
     if supercell_size % 2 == 0:
         supercell_size += 1
-    # half of the supercell (floored):
-    sch = int(supercell_size / 2)
 
     # Create geometry and add objects.
     objects = get_triangular_phc_waveguide_air_rods(
@@ -1399,6 +1396,9 @@ def TriHoles2D_Waveguide_effective_epsilon(
 
     runcode += defaults.template_runcode_epsilon_function % rundict
 
+    if "result" not in defaults.grep_datanames:
+        defaults.grep_datanames.append("result")
+
     sim = Simulation(
         jobname=jobname + job_name_suffix,
         geometry=geom,
@@ -1409,6 +1409,8 @@ def TriHoles2D_Waveguide_effective_epsilon(
         initcode=initcode,
         postcode='',
         runcode=runcode,
+        work_in_subfolder=path.join(
+            containing_folder, jobname + job_name_suffix),
         clear_subfolder=runmode.startswith('s') or runmode.startswith('c'))
 
     draw_bands_title = (

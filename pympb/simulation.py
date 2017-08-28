@@ -615,7 +615,7 @@ class Simulation(object):
 
             # export frequencies: (for band diagrams)
             # try to export all possible data:
-            datanames = ['freqs', 'velocity', 'dos', 'yparity', 'zparity']
+            datanames = defaults.grep_datanames
             for dataname in datanames:
                 self._export_data_helper(output_buffer, mode + dataname)
 
