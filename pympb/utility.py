@@ -493,7 +493,7 @@ def distribute_pattern_images(
     # Build the regular expression pattern for parsing file names:
 
     # re that matches the output, i.e. field (e, d or h) or 'dpwr' etc.:
-    f = r'(?P<field>[edh]|hpwr|dpwr|tot\.rpwr)'
+    f = r'(?P<field>[edbh]|hpwr|dpwr|bpwr|epwr|tot\.rpwr)'
     # re that matches the k number part, starting with '.':
     k = r'[.]k(?P<knum>\d+)'
     # re that matches the band number part, starting with '.':

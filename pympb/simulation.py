@@ -339,7 +339,7 @@ class Simulation(object):
         """
         # make list of all field pattern h5 files:
         filenames = glob1(self.workingdir, "*.h5")
-        for exclude in ["epsilon.h5", defaults.temporary_epsh5, 'foo']:
+        for exclude in ["epsilon.h5", defaults.temporary_epsh5]:
             d, f = path.split(path.join(self.workingdir, exclude))
             to_remove = glob1(d, f)
             for fname in to_remove:
@@ -404,7 +404,7 @@ class Simulation(object):
         # Build the regular expression pattern for parsing filenames:
 
         # re that matches the output, i.e. field (e, d or h) or 'dpwr' etc.:
-        f = r'(?P<field>[edh]|hpwr|dpwr|tot\.rpwr)'
+        f = r'(?P<field>[edhb]|hpwr|dpwr|bpwr|epwr|tot\.rpwr)'
         # re that matches the k number part, starting with '.':
         k = r'[.]k\d+'
         # re that matches the band number part, starting with '.':
@@ -418,13 +418,15 @@ class Simulation(object):
         retest = re.compile(
             ''.join(['(?P<filenamebase>', f, k, b, ')', c, m, '.h5']))
 
+        all_h5_files_matched = True
+
         for fname in filenames:
             # parse the filename to get mode and component(s):
             m = retest.match(fname)
             if m is None:
-                # this is strange
                 log.warning('Convert field patterns to png: Could not parse '
                             'the file name: {0}'.format(fname))
+                all_h5_files_matched = False
                 continue
             redict = m.groupdict()
             datasets = [redict.get('comp', None)]
@@ -514,7 +516,7 @@ class Simulation(object):
                                self.workingdir,
                                defaults.temporary_h5_folder,
                                fname))
-        return 0
+        return not all_h5_files_matched
 
 
     def _export_data_helper(self, output_buffer, dataname):
@@ -747,7 +749,7 @@ class Simulation(object):
 
         if not self.epsilon_to_png() == 1:
             if convert_field_patterns:
-                self.fieldpatterns_to_png()
+                error = self.fieldpatterns_to_png()
 
             # delete temporary files:
             if path.isfile(path.join(self.workingdir,
@@ -755,7 +757,8 @@ class Simulation(object):
                 remove(path.join(self.workingdir, defaults.temporary_epsh5))
             if path.isfile(path.join(self.workingdir, defaults.temporary_h5)):
                 remove(path.join(self.workingdir, defaults.temporary_h5))
-            if not defaults.delete_h5_after_postprocessing:
+            # do not delete eps_file if there was an error:
+            if error or not defaults.delete_h5_after_postprocessing:
                 # rename the epsilon.h5 file so my system knows it is a
                 # temporary file:
                 if path.isfile(self.eps_file + '~'):
