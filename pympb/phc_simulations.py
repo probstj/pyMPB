@@ -1129,7 +1129,7 @@ def TriHolesSlab3D_Waveguide(
         color_by_parity='y'
     )
 
-def TriHoles2D_Waveguide_effective_epsilon(
+def TriHoles2D_Waveguide_effective_epsilon_frequency_dependent(
         epsilon_cubspline_knots, epsilon_cubspline_coeffs,
         band_number, init_frequency,
         radius, mode='te', k_steps=17,
@@ -1364,7 +1364,7 @@ def TriHoles2D_Waveguide_effective_epsilon(
         'mode_upper': mode.upper(),
         'bandfuncs': bandfuncs}
 
-    runcode += defaults.template_initcode_epsilon_function % rundict
+    runcode += defaults.template_epsilon_function % rundict
 
     if ensure_y_parity in ['even', 'odd']:
         extra_bands += 2
@@ -1394,7 +1394,303 @@ def TriHoles2D_Waveguide_effective_epsilon(
         preparation = ''
     rundict['preparation'] = preparation
 
-    runcode += defaults.template_runcode_epsilon_function % rundict
+    runcode += defaults.template_runcode_freq_dependent_epsilon % rundict
+
+    if "result" not in defaults.grep_datanames:
+        defaults.grep_datanames.append("result")
+
+    sim = Simulation(
+        jobname=jobname + job_name_suffix,
+        geometry=geom,
+        kspace=kspaceW1,
+        numbands=band_number + extra_bands,
+        resolution=resolution,
+        mesh_size=mesh_size,
+        initcode=initcode,
+        postcode='',
+        runcode=runcode,
+        work_in_subfolder=path.join(
+            containing_folder, jobname + job_name_suffix),
+        clear_subfolder=runmode.startswith('s') or runmode.startswith('c'))
+
+    draw_bands_title = (
+        'Hex. PhC W1; band {0:02.0f}, radius={1:0.3f}'.format(
+            band_number, radius) +
+        bands_title_appendix)
+
+    return do_runmode(
+        sim, runmode, num_processors, draw_bands_title,
+        plot_crop_y=plot_crop_y,
+        convert_field_patterns=convert_field_patterns,
+        field_pattern_plot_k_selection=field_pattern_plot_k_selection,
+        field_pattern_plot_filetype=defaults.field_dist_filetype,
+        x_axis_hint=[5, "{1}" if ydirection else "{0}"],
+        project_bands_list=gap,
+        color_by_parity='y'
+    )
+
+def TriHoles2D_Waveguide_effective_epsilon_k_dependent(
+        epsilon_cubspline_knots, epsilon_cubspline_coeffs,
+        band_number, radius, mode='te', k_steps=17,
+        supercell_size=5, resolution=32, mesh_size=7,
+        ydirection=False, ensure_y_parity='no',
+        first_row_longitudinal_shift=0,
+        first_row_transversal_shift=0,
+        first_row_radius=None,
+        second_row_longitudinal_shift=0,
+        second_row_transversal_shift=0,
+        second_row_radius=None,
+        runmode='sim', num_processors=2,
+        save_field_patterns_kvecs=list(),
+        convert_field_patterns=False,
+        containing_folder='./',
+        job_name_suffix='', bands_title_appendix='',
+        plot_crop_y=False, extra_bands=0, gap=None,
+        field_pattern_plot_k_selection=None):
+    """Create a 2D MPB Simulation of a triangular lattice of holes, with
+    a waveguide along the nearest neighbor direction, i.e. Gamma->K
+    direction.
+
+    The background material epsilon will be dependent on k in waveguide
+    direction.
+
+    The simulation is done with a rectangular super cell.
+
+    :param epsilon_cubspline_knots:
+        An array of scalar k-values, separating a range of k values into
+        segments. In each segment, the material epsilon is defined by
+        a cubic polynomial. Outside the interval spanned by these
+        k values, epsilon will be extrapolated by the polynomials in
+        the outermost segments. If the epsilon function was fitted with
+        a ``scipy.interpolate.CubicSpline``, this is its
+        ``CubicSpline.x`` attribute.
+    :param epsilon_cubspline_coeffs:
+        A matrix of floats with shape (4, n-1), with `n` the length of
+        epsilon_cubspline_knots; ``epsilon_cubspline_coeffs[k, i]`` is
+        the coefficient for the polynomial ``(x-x[i])**(3-k)`` on
+        the segment between ``epsilon_cubspline_knots[i]`` and
+        ``epsilon_cubspline_knots[i+1]``. If the epsilon function was
+        fitted with a ``scipy.interpolate.CubicSpline``, this is its
+        ``CubicSpline.c`` attribute.
+    :param band_number: The effective epsilon function is usually
+        only valid for a single band. Choose it here. The band with
+        the lowest frequency is ``band_number=1``.
+    :param radius:
+        the radius of holes in units of the lattice constant
+    :param mode:
+        the mode to run. Possible are 'te' and 'tm'.
+    :param k_steps: number of k steps along the waveguide direction
+        between 0 and 0.5 to simulate. This can also be a list of the
+        explicit k values (just scalar values for component along the
+        waveguide axis) to be simulated.
+    :param supercell_size: the length of the supercell perpendicular to
+        the waveguide, in units of sqrt(3) times the lattice constant.
+        If it is not a odd number, one will be added.
+    :param resolution: described in MPB documentation
+    :param mesh_size: described in MPB documentation
+    :param ydirection: set this if the waveguide should point along y,
+        otherwise (default) it will point along x. Use the default if
+        you want to use yparity data.
+    :param ensure_y_parity: (default: 'no')
+        This can be either 'even' or 'odd', in which case the parity
+        of *band_number* is checked in an additional quick simulation
+        run at *init_frequency* before the real simulation starts.
+        If the parity does not match the desired parity, *band_number*
+        is increased until it matches. This is done separately for each
+        k-vector, and starts each time at the originally given
+        *band_number* again. If this feature is used, *extra_bands* is
+        automatically increased by 2.
+    :param first_row_longitudinal_shift: shifts the holes next to the
+        waveguide by this amount, parallel to the waveguide direction.
+    :param first_row_transversal_shift: shifts the holes next to the
+        waveguide by this amount, perpendicular to the waveguide
+        direction.
+    :param first_row_radius: The radius of the holes next to the
+        waveguide. If None (default), use radius.
+    :param second_row_longitudinal_shift: shifts the holes in the second
+        row next to the waveguide by this amount, parallel to the
+        waveguide direction
+    :param second_row_transversal_shift: shifts the holes in the second
+        row next to the waveguide by this amount, perpendicular to the
+        waveguide direction
+    :param second_row_radius: The radius of the holes in the second row
+        next to the waveguide. If None (default), use radius.
+    :param runmode: can be one of the following:
+
+        * empty string : just create and return the simulation object
+        * 'ctl'    : create the sim object and save the ctl file
+        * 'sim' (default): run the simulation and do all postprocessing
+        * 'postpc' : do all postprocessing; simulation should have run
+          before!
+        * 'display': display all pngs done during postprocessing. This is
+          the only mode that is interactive.
+    :param num_processors: number of processors used during simulation
+    :param save_field_patterns_kvecs: a list of k-vectors (3-tuples),
+        which indicates where field pattern h5 files are generated during
+        the simulation
+    :param convert_field_patterns: indicates whether field pattern h5
+        files should be converted to png (only when postprocessing)
+    :param containing_folder: the path to the folder which will contain
+        the simulation subfolder.
+    :param job_name_suffix: Optionally specify a job_name_suffix
+        (appendix to the folder name etc.) which will be appended to the
+        jobname created automatically from the most important parameters.
+    :param bands_title_appendix: will be added to the title of the bands
+        diagram.
+    :param plot_crop_y:
+        Optionally define a min. and max. frequency value (in a 2-tuple)
+        where the band diagram will be cropped.
+    :param extra_bands:
+        number of extra bands to calculate above band_number. Their
+        frequencies will be faulty since they were calculated with the
+        wrong effective epsilon, but perhaps you need them for
+        reference.
+    :param gap:
+        Optional tuple of the lower and upper band gap frequencies,
+        if you want to add the gap to the band diagram (default: None).
+    :return: the Simulation object
+
+    """
+
+    # these k points will be simulated (along waveguide):
+    if isinstance(k_steps, (int, float)):
+        k_steps = int(k_steps)
+        k_points = np.linspace(0, 0.5, num=k_steps, endpoint=True)
+    else:
+        k_points = np.array(k_steps)
+
+    # If a longitudinal shift is used, inversion symmetry is broken:
+    if ((first_row_longitudinal_shift or second_row_longitudinal_shift) and
+        'mpbi' in defaults.mpb_call):
+            log.info('default MPB to use includes inversion symmetry: '
+                 '{0}. '.format(defaults.mpb_call) +
+                 'Shift of holes specified, which breaks inv. symmetry. '
+                 'Will fall back to MPB without inv. symm.: {0}'.format(
+                     defaults.mpb_call.replace('mpbi', 'mpb')
+                 ))
+            defaults.mpb_call = defaults.mpb_call.replace('mpbi', 'mpb')
+
+    # make it odd:
+    if supercell_size % 2 == 0:
+        supercell_size += 1
+
+    # Create geometry and add objects.
+    objects = get_triangular_phc_waveguide_air_rods(
+        radius=radius,
+        supercell_size=supercell_size,
+        ydirection=ydirection,
+        first_row_longitudinal_shift=first_row_longitudinal_shift,
+        first_row_transversal_shift=first_row_transversal_shift,
+        first_row_radius=first_row_radius,
+        second_row_longitudinal_shift=second_row_longitudinal_shift,
+        second_row_transversal_shift=second_row_transversal_shift,
+        second_row_radius=second_row_radius)
+
+    if ydirection:
+        geom = Geometry(
+            width='(* (sqrt 3) %i)' % supercell_size,
+            height=1,
+            triangular=False,
+            objects=objects
+        )
+        kspaceW1 = KSpace(
+            points_list=[(0, ky, 0) for ky in k_points],
+            k_interpolation=0,
+        )
+    else:
+        geom = Geometry(
+            width=1,
+            height='(* (sqrt 3) %i)' % supercell_size,
+            triangular=False,
+            objects=objects
+        )
+        kspaceW1 = KSpace(
+            points_list=[(kx, 0, 0) for kx in k_points],
+            k_interpolation=0,
+        )
+
+    jobname = (
+        'TriHoles2D_W1_effeps_kdep_band'
+        '{0:02.0f}{1}_r{2:03.0f}_res{3:03.0f}'.format(
+            band_number,
+            ensure_y_parity if ensure_y_parity in ['even', 'odd'] else '',
+            radius * 1000, resolution))
+
+    initcode = '\n'.join([
+        defaults.default_initcode,
+        '; the given epsilon is intended to be applied to this band:',
+        '(define bandnum {0:.0f})'.format(band_number)])
+
+    runcode = ''
+    if defaults.newmpb:
+        runcode = '(optimize-grid-size!)\n\n'
+
+    epsknots = ''.join(
+        '\n    ' + ' '.join(
+            str(x) for x in epsilon_cubspline_knots[i:i + 4]
+        )
+        for i in range(0, len(epsilon_cubspline_knots), 4)
+    )
+    epscoeffs = ''.join(
+        '\n  (' + ''.join(
+            '\n    ' + ' '.join(
+                str(x) for x in epsilon_cubspline_coeffs[j, i:i + 4]
+            )
+            for i in range(0, len(epsilon_cubspline_coeffs[j]), 4)
+        ) + '\n  )'
+        for j in range(len(epsilon_cubspline_coeffs))
+    )
+
+    if mode == 'te':
+        outputfuncs = defaults.output_funcs_te
+    else:
+        outputfuncs = defaults.output_funcs_tm
+
+    bandfuncs = ("\n" + 20 * " ").join(
+        map(str.strip,
+            defaults.default_band_func(
+                save_field_patterns_kvecs, ' '.join(outputfuncs)
+            ).strip().split('\n')))
+
+    rundict = {
+        'epsknots': epsknots,
+        'epscoeffs': epscoeffs,
+        'mode_lower': mode.lower(),
+        'mode_upper': mode.upper(),
+        'bandfuncs': bandfuncs}
+
+    runcode += defaults.template_epsilon_function % rundict
+
+    if ensure_y_parity in ['even', 'odd']:
+        extra_bands += 2
+        runcode += (
+            '\n'
+            '(define (get-bandnum-for-y%s-parity init-bandnum)\n'
+            '    (let ( (pars (compute-yparities))\n'
+            '           (velos (compute-group-velocity-component\n'
+            '                    (cartesian->reciprocal (vector3 1 0 0))) )\n'
+            '         )\n'
+            '        (do ( (bi (- init-bandnum 1) (+ bi 1)) )\n'
+            '            ( (%s (list-ref pars bi)) (+ bi 1)))\n'
+            '))\n\n'% (
+                ensure_y_parity,
+                ['> -0.5', '< 0.5'][['odd', 'even'].index(ensure_y_parity)])
+        )
+        preparation = ''
+        bandnumfunc = 'get-bandnum-for-y%s-parity' % ensure_y_parity
+    else:
+        runcode += (
+            '\n'
+            '(define (get-bandnum-ignoring-parity init-bandnum)\n'
+            '    init-bandnum)\n\n'
+        )
+        preparation = ''
+        bandnumfunc = 'get-bandnum-ignoring-parity'
+
+    rundict['preparation'] = preparation
+    rundict['bandnumfunc'] = bandnumfunc
+
+    runcode += defaults.template_runcode_k_dependent_epsilon % rundict
 
     if "result" not in defaults.grep_datanames:
         defaults.grep_datanames.append("result")
