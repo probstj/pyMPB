@@ -775,6 +775,31 @@ class Simulation(object):
                     log.info("deleted {0}".format(self.eps_file))
         return
 
+    def get_data(self, dataname, skiprows=1, ndmin=2):
+        """Get data from simulation output. Simulation must have run and
+        post_process() must have been called before.
+
+        :param dataname: the name of the data to be returned.
+            This must be one of the data names included in
+            defaults.grep_datanames, and be included in the simulation
+            output, e.g. `tefreqs`, `tmyparity` etc.
+        :return a numpy ndarray with the data loaded from the
+            appropriate .csv file
+
+        """
+        fnamebase = path.join(
+            self.workingdir,
+            '{0}_{{0}}.csv'.format(self.jobname))
+        fname = fnamebase.format(dataname)
+        if not path.exists(fname):
+            raise ValueError(
+                    'Cannot get data `%s`, because file `%s` does not '
+                    'exist. Did the simulation run and was it '
+                    'post-processed before? Is the data available in '
+                    'the simulation output file?' % (dataname, fname))
+        return np.loadtxt(
+            fname, delimiter=',', skiprows=skiprows, ndmin=ndmin)
+
     def display_epsilon(self):
         if not path.isfile(path.join(self.workingdir, 'epsilon.png')):
             return
