@@ -473,3 +473,45 @@ template_runcode_k_dependent_epsilon = r"""
 (print "done.\n")
 """
 
+template_y_odd_bandnum = r"""
+(define (get-bandnum-for-y-odd-parity init-bandnum)
+    (let ( (pars (compute-yparities))
+           (velos (compute-group-velocity-component
+                      (cartesian->reciprocal (vector3 1 0 0))) )
+           (last-yodd 0)
+           (bi (- init-bandnum 1))
+         )
+        (if (< (list-ref pars bi) -0.5)
+            ; init-bandnum is already y-odd, return it:
+            init-bandnum
+            ; look for first y-odd band with negative velocity:
+            (begin
+                (while (or (> (list-ref pars bi) 0) (> (list-ref velos bi) 0) )
+                    (if (< (list-ref pars bi) -0.5) (set! last-yodd (+ bi 1)))
+                    (set! bi (+ bi 1))
+                    (if (>= bi num-bands) (break))
+                ) ; while
+                (if (= bi num-bands)
+                   ; reached last band, return last y-odd band encountered:
+                   last-yodd
+                   ; otherwise:
+                   ; directly following bi, more y-odd bands might have
+                   ; negative velocities; find the lowest thereof:
+                   (let ( (bi2 bi) )
+                      (while (or (> (list-ref pars bi2) 0)
+                                 (<= (list-ref velos bi2) (list-ref velos bi)))
+                          (if (< (list-ref pars bi2) -0.5) (set! bi bi2))
+                          (set! bi2 (+ bi2 1))
+                          (if (>= bi2 num-bands) (break))
+                      ) ; while
+                      (+ bi 1)
+                   ) ; let
+                ); if
+            ); begin
+        ) ; if
+    ) ; let
+) ; define
+
+
+"""
+

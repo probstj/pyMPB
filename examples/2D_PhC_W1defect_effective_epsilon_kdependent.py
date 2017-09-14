@@ -96,7 +96,7 @@ def main():
         epsilon_cubspline_knots=fknots,
         epsilon_cubspline_coeffs=fcoeffs,
         band_number=first_wg_band,
-        extra_bands=4,
+        extra_bands=10,
         radius=0.38,
         mode='te',
         k_steps=ksteps,

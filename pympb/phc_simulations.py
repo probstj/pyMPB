@@ -1492,14 +1492,16 @@ def TriHoles2D_Waveguide_effective_epsilon_k_dependent(
         otherwise (default) it will point along x. Use the default if
         you want to use yparity data.
     :param ensure_y_parity: (default: 'no')
-        This can be either 'even' or 'odd', in which case the parity
-        of *band_number* is checked in an additional quick simulation
-        run at *init_frequency* before the real simulation starts.
-        If the parity does not match the desired parity, *band_number*
-        is increased until it matches. This is done separately for each
-        k-vector, and starts each time at the originally given
-        *band_number* again. If this feature is used, *extra_bands* is
-        automatically increased by 2.
+        This can be either 'even' or 'odd', in which case the parities
+        of the simulated bands are checked to find the right band to return
+        in the results If field patterns are exported, they will only be
+        exported at these bands. For 'even', the first y-even band starting
+        from *band_number* is selected, for 'odd' a little more
+        sophisticated algorithm utilizing parities and group velocities
+        is used to find the characteristic y-odd waveguide band.
+        If this feature is used, *extra_bands* is automatically increased
+        by 2, but this is not enough if 'odd' is used, where *extra_bands*
+        should be manually set to more than 10 or so.
     :param first_row_longitudinal_shift: shifts the holes next to the
         waveguide by this amount, parallel to the waveguide direction.
     :param first_row_transversal_shift: shifts the holes next to the
@@ -1661,23 +1663,38 @@ def TriHoles2D_Waveguide_effective_epsilon_k_dependent(
 
     runcode += defaults.template_epsilon_function % rundict
 
-    if ensure_y_parity in ['even', 'odd']:
+    if ensure_y_parity == 'even':
         extra_bands += 2
         runcode += (
             '\n'
-            '(define (get-bandnum-for-y%s-parity init-bandnum)\n'
+            '(define (get-bandnum-for-y-%s-parity init-bandnum)\n'
             '    (let ( (pars (compute-yparities))\n'
-            '           (velos (compute-group-velocity-component\n'
-            '                    (cartesian->reciprocal (vector3 1 0 0))) )\n'
             '         )\n'
             '        (do ( (bi (- init-bandnum 1) (+ bi 1)) )\n'
-            '            ( (%s (list-ref pars bi)) (+ bi 1)))\n'
-            '))\n\n'% (
-                ensure_y_parity,
-                ['> -0.5', '< 0.5'][['odd', 'even'].index(ensure_y_parity)])
+            '            ( (< 0.5 (list-ref pars bi)) (+ bi 1)))\n'
+            '))\n\n' % ensure_y_parity
         )
         preparation = ''
-        bandnumfunc = 'get-bandnum-for-y%s-parity' % ensure_y_parity
+        bandnumfunc = 'get-bandnum-for-y-%s-parity' % ensure_y_parity
+    elif ensure_y_parity == 'odd':
+        extra_bands += 2
+        # Special handling of the y-odd wg mode in holey hexagonal photonic
+        # crystal. Beginning at small k upto k more than 1/2 pi/a, the mode
+        # has a nearly constant (negative) group velocity in waveguide
+        # direction. At small k, it extends above the band gap, crossing
+        # (actually also anti-crossing) other y-odd modes which extend into
+        # the bulk photonic crystal. If we just take the first y-odd mode
+        # we find above init-bandnum (like we are doing with y-even modes),
+        # we'll get one of those bulk modes at low k.
+        # We can utilize the proper waveguide mode's high (negative) group
+        # velocity, which makes it unique among the other modes (with
+        # positive velocities), to find it. Unfortunately, since it anti-
+        # crosses with the bulk y-odd modes, its frequencies are not exact
+        # (and it even depends on the supercell size which influences the
+        # number of bulk modes), but it is the best we can do:
+        runcode += defaults.template_y_odd_bandnum
+        preparation = ''
+        bandnumfunc = 'get-bandnum-for-y-%s-parity' % ensure_y_parity
     else:
         runcode += (
             '\n'
