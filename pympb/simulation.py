@@ -748,8 +748,7 @@ class Simulation(object):
                         self.eps_file + '~', self.eps_file))
 
         if not self.epsilon_to_png() == 1:
-            if convert_field_patterns:
-                error = self.fieldpatterns_to_png()
+            error = convert_field_patterns and self.fieldpatterns_to_png()
 
             # delete temporary files:
             if path.isfile(path.join(self.workingdir,
